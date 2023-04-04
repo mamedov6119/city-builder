@@ -6,16 +6,21 @@ SCREEN_WIDTH = 780
 SCREEN_HEIGHT = 480
 SCREEN_TITLE = "City-Builder"
 CHRACTER_SCALING = 0.04
-
+HUMAN_SPEED = 0.008
 def check_boundary_collision(sprite, screen_width, screen_height):
     if sprite.right > screen_width:
         sprite.right = screen_width
+        return True
     elif sprite.left < 3*BLOCK_SIZE:
         sprite.left = 3*BLOCK_SIZE
+        return True
     if sprite.top > screen_height - BLOCK_SIZE:
         sprite.top = screen_height - BLOCK_SIZE
+        return True
     elif sprite.bottom < 0:
         sprite.bottom = 0
+        return True
+    return False
 
 
     
@@ -28,7 +33,12 @@ class Human(arcade.Sprite):
         self.circle_speed = 0.008
         self.circle_center_x = 0
         self.circle_center_y = 0
+        # self.center_x = 100
+        # self.center_y = 100
+        self.speed = HUMAN_SPEED
         
+    # def movement(self, x):
+    #     self.center_x += x
 
     def update(self):
         self.center_x = self.circle_radius * math.sin(self.circle_angle) \
@@ -37,9 +47,19 @@ class Human(arcade.Sprite):
             + self.circle_center_y
 
         self.circle_angle += self.circle_speed
-
+        
         check_boundary_collision(self, SCREEN_WIDTH, SCREEN_HEIGHT)
+    def collides_with_list(self, sprite_list):
+        from arcade import check_for_collision_with_list
+        return check_for_collision_with_list(self, sprite_list)
+            
 
+
+class Building(arcade.Sprite):
+
+    def __init__(self,filename, building_scaling):
+        super().__init__(filename, building_scaling)
+    
 
 
 
@@ -54,6 +74,8 @@ class Game(arcade.Window):
         self.money = 1000
         self.humans_sprites = None
         self.humans = []
+        self.building_sprites = None
+        self.buildings = []
 
         super().__init__(width, height, title, False)
         arcade.set_background_color(arcade.color.AMAZON)
@@ -117,17 +139,26 @@ class Game(arcade.Window):
             arcade.draw_line(BLOCK_SIZE*3, y, SCREEN_WIDTH, y, arcade.color.GRAY, 1)
 
     def setup(self):
-        
+        self.building_sprites = arcade.SpriteList()
         self.humans_sprites = arcade.SpriteList()
         
         for i in range(10):
             human = Human("spaceman.png", CHRACTER_SCALING)
+            human.change_x = random.randrange(-4, 5)
+            human.change_y = random.randrange(-4, 5)
             human.circle_center_y = random.randrange(150, 700)
             human.circle_center_x = random.randrange(150, 700)
             human.circle_radius = random.randrange(10, 200)
             human.circle_angle = random.random() * 2 * math.pi
+            # human.center_y = 1.5*BLOCK_SIZE*i
             self.humans.append(human)
             self.humans_sprites.append(human)
+        for i in range(5):
+            building = Building("PowerPlant.png",0.5)
+            building.center_x = BLOCK_SIZE*4 + 150*i
+            building.center_y = BLOCK_SIZE * 10
+            self.buildings.append(building)
+            self.building_sprites.append(building)
 
 
     def on_draw(self):
@@ -139,6 +170,7 @@ class Game(arcade.Window):
         self.sidetop_manager.draw()
         self.sidebtm_manager.draw()
         self.humans_sprites.draw()
+        self.building_sprites.draw()
         
 
         
@@ -152,6 +184,14 @@ class Game(arcade.Window):
         """
 
         self.humans_sprites.update()
+        # preventing the collision with the buildings
+        # not working yet
+        for human in self.humans:
+            human.center_x += human.change_x
+            building_hit = arcade.check_for_collision_with_list(human, self.building_sprites)
+        if len(building_hit) > 0:
+            human.change_x *= -1
+
         
        
         
