@@ -1,23 +1,7 @@
 import arcade, arcade.gui, datetime, random, math;
+from arcade import check_for_collision_with_list;
+
 from gameconfig import *;
-
-def check_boundary_collision(sprite, screen_width, screen_height):
-    if sprite.right > screen_width:
-        sprite.right = screen_width
-        return True
-    elif sprite.left < 3*BLOCK_SIZE:
-        sprite.left = 3*BLOCK_SIZE
-        return True
-    if sprite.top > screen_height - BLOCK_SIZE:
-        sprite.top = screen_height - BLOCK_SIZE
-        return True
-    elif sprite.bottom < 0:
-        sprite.bottom = 0
-        return True
-    return False
-
-
-    
 
 class Human(arcade.Sprite):
     def __init__(self, filename, sprite_scaling):
@@ -39,22 +23,30 @@ class Human(arcade.Sprite):
             + self.circle_center_x
         self.center_y = self.circle_radius * math.cos(self.circle_angle) \
             + self.circle_center_y
-
         self.circle_angle += self.circle_speed
-        
-        check_boundary_collision(self, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.check_boundary_collision(SCREEN_WIDTH, SCREEN_HEIGHT)
+
     def collides_with_list(self, sprite_list):
-        from arcade import check_for_collision_with_list
         return check_for_collision_with_list(self, sprite_list)
+    
+    def check_boundary_collision(self, screen_width, screen_height):
+        if self.right > screen_width:
+            self.right = screen_width
+            return True
+        elif self.left < 3*BLOCK_SIZE:
+            self.left = 3*BLOCK_SIZE
+            return True
+        if self.top > screen_height - BLOCK_SIZE:
+            self.top = screen_height - BLOCK_SIZE
+            return True
+        elif self.bottom < 0:
+            self.bottom = 0
+            return True
+        return False
             
-
-
 class Building(arcade.Sprite):
-
     def __init__(self,filename, building_scaling):
         super().__init__(filename, building_scaling)
-    
-
 
 
 class Game(arcade.Window):
