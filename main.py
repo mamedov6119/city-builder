@@ -143,7 +143,7 @@ class Game(arcade.Window):
         self.humans_sprites = arcade.SpriteList()
         
         for i in range(10):
-            human = Human("spaceman.png", CHRACTER_SCALING)
+            human = Human("./images/spaceman.png", CHRACTER_SCALING)
             human.change_x = random.randrange(-4, 5)
             human.change_y = random.randrange(-4, 5)
             human.circle_center_y = random.randrange(150, 700)
@@ -154,7 +154,7 @@ class Game(arcade.Window):
             self.humans.append(human)
             self.humans_sprites.append(human)
         for i in range(5):
-            building = Building("PowerPlant.png",0.5)
+            building = Building("./images/PowerPlant.png",0.5)
             building.center_x = BLOCK_SIZE*4 + 150*i
             building.center_y = BLOCK_SIZE * 10
             self.buildings.append(building)
