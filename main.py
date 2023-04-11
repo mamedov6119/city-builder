@@ -1,12 +1,6 @@
-import arcade, arcade.gui, datetime;
-import random
-import math
-BLOCK_SIZE = 30
-SCREEN_WIDTH = 780
-SCREEN_HEIGHT = 480
-SCREEN_TITLE = "City-Builder"
-CHRACTER_SCALING = 0.04
-HUMAN_SPEED = 0.008
+import arcade, arcade.gui, datetime, random, math;
+from gameconfig import *;
+
 def check_boundary_collision(sprite, screen_width, screen_height):
     if sprite.right > screen_width:
         sprite.right = screen_width
