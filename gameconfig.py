@@ -1,3 +1,4 @@
+import arcade
 # ======================================== #
 # ============ WINDOW CONFIG ============= #
 # ======================================== #
@@ -14,4 +15,6 @@ SCREEN_TITLE = "City-Builder"
 # ======================================== #
 HUMAN_SPEED = 0.008
 CHRACTER_SCALING = 0.04
+humans_sprites = arcade.SpriteList()
+building_sprites = arcade.SpriteList()
 # ======================================== #

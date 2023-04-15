@@ -12,8 +12,6 @@ class Window(arcade.Window):
 
     """ Class which renders the field of the game. """
     def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE):
-        self.humans_sprites = None
-        self.building_sprites = None
 
         super().__init__(width, height, title, False)
         arcade.set_background_color(arcade.color.AMAZON)
@@ -73,8 +71,8 @@ class Window(arcade.Window):
             arcade.draw_line(BLOCK_SIZE*3, y, SCREEN_WIDTH, y, arcade.color.GRAY, 1)
 
     def setup(self):
-        self.building_sprites = arcade.SpriteList()
-        self.humans_sprites = arcade.SpriteList()
+        # building_sprites = arcade.SpriteList()
+        # humans_sprites = arcade.SpriteList()
         
         for i in range(10):
             human = Human()
@@ -85,9 +83,9 @@ class Window(arcade.Window):
             human.circle_radius = random.randrange(10, 200)
             human.circle_angle = random.random() * 2 * math.pi
             # human.center_y = 1.5*BLOCK_SIZE*i
-            self.humans_sprites.append(human)
+            humans_sprites.append(human)
         for i in range(8):
-            self.building_sprites.append(PowerPlant((i*3),1))
+            PowerPlant((i*3),1)
 
     def on_draw(self):
         """ Render the screen. """
@@ -97,8 +95,8 @@ class Window(arcade.Window):
         self.menu_manager.draw()
         self.sidetop_manager.draw()
         self.sidebtm_manager.draw()
-        self.humans_sprites.draw()
-        self.building_sprites.draw()
+        humans_sprites.draw()
+        building_sprites.draw()
 
     def on_update(self, delta_time):
         """
@@ -106,12 +104,12 @@ class Window(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        self.humans_sprites.update()
+        humans_sprites.update()
         # preventing the collision with the buildings
         # not working yet
-        for human in self.humans_sprites:
+        for human in humans_sprites:
             human.center_x += human.change_x
-            building_hit = arcade.check_for_collision_with_list(human, self.building_sprites)
+            building_hit = arcade.check_for_collision_with_list(human, building_sprites)
         if len(building_hit) > 0:
             human.change_x *= -1
 
@@ -126,4 +124,4 @@ class Window(arcade.Window):
         """ Called when the user presses a mouse button. """
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
         # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
-        self.building_sprites.append(PowerPlant(i,j))
+        PowerPlant(i,j)
