@@ -86,11 +86,8 @@ class Window(arcade.Window):
             human.circle_angle = random.random() * 2 * math.pi
             # human.center_y = 1.5*BLOCK_SIZE*i
             self.humans_sprites.append(human)
-        for i in range(5):
-            building = PowerPlant()
-            building.center_x = BLOCK_SIZE*4 + 150*i
-            building.center_y = BLOCK_SIZE * 10
-            self.building_sprites.append(building)
+        for i in range(8):
+            self.building_sprites.append(PowerPlant((i*3),1))
 
     def on_draw(self):
         """ Render the screen. """
@@ -127,5 +124,6 @@ class Window(arcade.Window):
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         """ Called when the user presses a mouse button. """
-        print(x//BLOCK_SIZE,y//BLOCK_SIZE)
-        # make the humans move
+        i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
+        # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
+        self.building_sprites.append(PowerPlant(i,j))
