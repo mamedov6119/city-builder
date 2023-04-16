@@ -3,13 +3,71 @@ from gameconfig import *;
 import arcade;
 
 class Building(arcade.Sprite):
-    def __init__(self, filename, building_scaling):
-        super().__init__("./images/" + filename, building_scaling)
+    def __init__(self, filename, cost=0, maintenance=0, capacity=0, dim=1, x=-1, y=-1):
+        super().__init__("./images/" + filename, image_width=BLOCK_SIZE*dim, image_height=BLOCK_SIZE*dim)
+        self.maintenance = maintenance
+        self.capacity = capacity
+        self.cost = cost
+        self.dim = dim
+        if (x != -1 and y != -1):
+            self.place(x,y)
+            self.append()
 
     def place(self,x,y):
-        self.center_x = (BLOCK_SIZE*2) 
-        self.center_y = BLOCK_SIZE*10
+        # print(f"x:{x}, y:{y}. BX:{x*BLOCK_SIZE}, BY:{y*BLOCK_SIZE}")
+        self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
+        self.center_y = ((y+1)*BLOCK_SIZE - (self.dim)*BLOCK_SIZE/2)
+
+    def append(self):
+        building_sprites.append(self)
+
+    def getDim(self):
+        return self.dim
+    
+    def getCost(self):
+        return self.cost
+    
+    def getMaintenance(self):
+        return self.maintenance
+    
+    def getCapacity(self):
+        return self.capacity
 
 class PowerPlant(Building):
+    def __init__(self, x=-1, y=-1):
+        super().__init__("PowerPlant.png", cost=1000, maintenance=200, capacity=30, dim=2, x=x, y=y)
+
+class FireDepartment(Building):
+    def __init__(self, x=-1, y=-1, sradius=1, ftruck=1):
+        super().__init__("FireDepartment.png", cost=1200, maintenance=300, capacity=20, dim=2, x=x, y=y)
+        self.sradius = sradius
+        self.ftruck = ftruck
+
+    def getSafetyRadius(self):
+        return self.sradius
+    
+# class FireTruck(FireDepartment):
+#     def __init__(self):
+#         super().__init__("FireTruck.png", 0.2)
+
+class PoliceDepartment(Building):
+    def __init__(self, x=-1, y=-1, sradius=1):
+        super().__init__("PoliceDepartment.png", cost=1200, maintenance=250, capacity=20, dim=2, x=x, y=y)
+        self.sradius = sradius
+
+    def getSafetyRadius(self):
+        return self.sradius
+    
+class Stadium(Building):
+    def __init__(self, x=-1, y=-1, sradius=1, bonus=1.5):
+        super().__init__("Stadium.png", cost=1500, maintenance=300, capacity=30, dim=2, x=x, y=y)
+        self.sradius = sradius
+        self.bonus = bonus
+
+class House(Building):
     def __init__(self):
-        super().__init__("PowerPlant.png", 0.5)
+        super().__init__("House.png", capacity=20)
+
+class WorkPlace(Building):
+    def __init__(self, x=-1, y=-1):
+        super().__init__("WorkPlace.png", capacity=30, dim=1, x=x, y=y)

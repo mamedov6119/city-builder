@@ -4,16 +4,39 @@ from classes.Building import *;
 
 import arcade, arcade.gui, math, random, datetime;
 
+class Hover(arcade.Sprite):
+    def __init__(self, size=0, color=arcade.color.RED):
+        super().__init__()
+        self.color = color
+        self.set_size(size)
+    
+    def set_size(self, size):
+        self.size = size
+        self.width = size * BLOCK_SIZE
+        self.height = size * BLOCK_SIZE
+        self.texture = arcade.make_soft_square_texture(size*BLOCK_SIZE, self.color)
+
+    def update_pos(self, i, j):
+        self.center_x = ((i+3)*BLOCK_SIZE + (self.size)*BLOCK_SIZE/2)
+        self.center_y = ((j+1)*BLOCK_SIZE - (self.size)*BLOCK_SIZE/2)
+
 class Window(arcade.Window):
     time = 0
     boost = 1
     items = []
     money = 1000
+    selected = -1
+    hover_sprite = Hover()
+    sidebtns = [
+        {"text": "Powerplant", "color": arcade.color.DARK_PUCE, "class": PowerPlant()},
+        {"text": "Police Dep", "color": arcade.color.AZURE, "class": PoliceDepartment()},  
+        {"text": "Fire Dep", "color": arcade.color.ALABAMA_CRIMSON, "class": FireDepartment()},   
+        {"text": "Stadium", "color": arcade.color.BURNT_ORANGE, "class": Stadium()},
+        {"text": "Workplace", "color": arcade.color.DARK_PUCE, "class": WorkPlace()}
+    ]
 
     """ Class which renders the field of the game. """
     def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE):
-        self.humans_sprites = None
-        self.building_sprites = None
 
         super().__init__(width, height, title, False)
         arcade.set_background_color(arcade.color.AMAZON)
@@ -29,10 +52,7 @@ class Window(arcade.Window):
         self.menu_manager.add(arcade.gui.UIAnchorWidget(anchor_x="right", anchor_y="top", child=self.v_box))
 
         # Side-menu (top)
-        self.ht_box = arcade.gui.UIBoxLayout(vertical=True)
-        for i in ["a", "b", "c"]*3:
-            self.ht_box.add(arcade.gui.UIFlatButton(text=i, width=(BLOCK_SIZE*2)-2, height=BLOCK_SIZE-2).with_space_around(right=1,top=1,bottom=1,left=1))
-        self.sidetop_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="top", child=self.ht_box, align_x=BLOCK_SIZE//2, align_y=-BLOCK_SIZE))
+        self.draw_sidetop()
         
         # Side-menu (bottom)
         self.hb_box = arcade.gui.UIBoxLayout(vertical=True)
@@ -40,12 +60,32 @@ class Window(arcade.Window):
         self.hb_box.add(arcade.gui.UIFlatButton(text='SAVE', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4).with_space_around(right=2,top=2,bottom=2,left=2))
         self.sidebtm_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="bottom", child=self.hb_box, align_x=0, align_y=0))
 
+        humans_sprites.append(self.hover_sprite)
+
+    def set_select(self, e):
+        self.selected = e.source.text if self.selected != e.source.text else -1
+
+        if self.selected != -1:
+            dim = self.sidebtns[[i["text"] for i in self.sidebtns].index(self.selected)]["class"].getDim()
+            self.hover_sprite.set_size(dim)
+        else:
+            self.hover_sprite.set_size(0)
+
+        self.draw_sidetop()
+
+    def draw_sidetop(self):
+        self.ht_box = arcade.gui.UIBoxLayout(vertical=True)
+        for i in self.sidebtns:
+            btn = arcade.gui.UIFlatButton(text=i["text"], width=(BLOCK_SIZE*2)-2, height=BLOCK_SIZE-2, style={"font_size": 8, "bg_color": i["color"], "border_color": arcade.color.WHITE if self.selected == i["text"] else None})
+            btn.on_click = lambda e: self.set_select(e)
+            self.ht_box.add(btn.with_space_around(right=1,top=1,bottom=1,left=1))
+        self.sidetop_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="top", child=self.ht_box, align_x=BLOCK_SIZE//2, align_y=-BLOCK_SIZE))
+
     def show_date(self):
         """ Show the date """
         startdate = datetime.date(2000, 1, 1)
         result = startdate + datetime.timedelta(days=self.time)
         return result.strftime("%d %B %Y")
-        
 
     def show_menu(self):
         """ Show the menu """
@@ -73,9 +113,6 @@ class Window(arcade.Window):
             arcade.draw_line(BLOCK_SIZE*3, y, SCREEN_WIDTH, y, arcade.color.GRAY, 1)
 
     def setup(self):
-        self.building_sprites = arcade.SpriteList()
-        self.humans_sprites = arcade.SpriteList()
-        
         for i in range(10):
             human = Human()
             human.change_x = random.randrange(-4, 5)
@@ -85,12 +122,9 @@ class Window(arcade.Window):
             human.circle_radius = random.randrange(10, 200)
             human.circle_angle = random.random() * 2 * math.pi
             # human.center_y = 1.5*BLOCK_SIZE*i
-            self.humans_sprites.append(human)
-        for i in range(5):
-            building = PowerPlant()
-            building.center_x = BLOCK_SIZE*4 + 150*i
-            building.center_y = BLOCK_SIZE * 10
-            self.building_sprites.append(building)
+            humans_sprites.append(human)
+        for i in range(8):
+            PowerPlant((i*3),1)
 
     def on_draw(self):
         """ Render the screen. """
@@ -100,8 +134,8 @@ class Window(arcade.Window):
         self.menu_manager.draw()
         self.sidetop_manager.draw()
         self.sidebtm_manager.draw()
-        self.humans_sprites.draw()
-        self.building_sprites.draw()
+        humans_sprites.draw()
+        building_sprites.draw()
 
     def on_update(self, delta_time):
         """
@@ -109,12 +143,12 @@ class Window(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        self.humans_sprites.update()
+        humans_sprites.update()
         # preventing the collision with the buildings
         # not working yet
-        for human in self.humans_sprites:
+        for human in humans_sprites:
             human.center_x += human.change_x
-            building_hit = arcade.check_for_collision_with_list(human, self.building_sprites)
+            building_hit = arcade.check_for_collision_with_list(human, building_sprites)
         if len(building_hit) > 0:
             human.change_x *= -1
 
@@ -123,9 +157,21 @@ class Window(arcade.Window):
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
         """ Called whenever the mouse moves. """
-        pass # hover, if building is selected
+        if self.selected != -1:
+            i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
+            if (i >= 0 and j >= 0):
+                self.hover_sprite.update_pos(i,j)
+        
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         """ Called when the user presses a mouse button. """
-        print(x//BLOCK_SIZE,y//BLOCK_SIZE)
-        # make the humans move
+        i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
+        # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
+        if (i >= 0 and j >= 0 and self.selected != -1):
+            if self.selected == "Powerplant": PowerPlant(i,j)
+            elif self.selected == "Police Dep": PoliceDepartment(i,j)
+            elif self.selected == "Fire Dep": FireDepartment(i,j)
+            elif self.selected == "Stadium": Stadium(i,j)
+            elif self.selected == "Workplace": WorkPlace(i,j)
+                
+            
