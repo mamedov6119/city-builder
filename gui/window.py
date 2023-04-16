@@ -4,6 +4,8 @@ from classes.Building import *;
 
 import arcade, arcade.gui, math, random, datetime, json;
 
+speed = 1 # as global
+
 class Hover(arcade.Sprite):
     def __init__(self, size=0, color=arcade.color.RED):
         super().__init__()
@@ -58,6 +60,7 @@ class Window(arcade.Window):
         humans_sprites.append(self.hover_sprite)
 
     def load(self, filename="save.json"):
+        global speed
         self.boost = 1; self.items = []; self.time = 0; self.money = 1000
         try:
             with open(filename, "r") as f:
@@ -67,6 +70,7 @@ class Window(arcade.Window):
                 self.money = data["money"] if "money" in data else self.money
                 self.items = data["items"] if "items" in data else self.items
         except: pass
+        speed = self.boost
         for item in self.items:
             if item["type"] == "Powerplant": PowerPlant(item["x"],item["y"])
             elif item["type"] == "Police Dep": PoliceDepartment(item["x"],item["y"])
@@ -88,8 +92,10 @@ class Window(arcade.Window):
         self.draw_sidetop()
 
     def set_boost(self, e):
+        global speed
         self.boost = int(e.source.text[1])
         self.draw_topbar()
+        speed = self.boost
 
     def draw_sidetop(self):
         self.ht_box = arcade.gui.UIBoxLayout(vertical=True)
@@ -141,18 +147,8 @@ class Window(arcade.Window):
             arcade.draw_line(BLOCK_SIZE*3, y, SCREEN_WIDTH, y, arcade.color.GRAY, 1)
 
     def setup(self):
-        for i in range(10):
-            human = Human()
-            human.change_x = random.randrange(-4, 5)
-            human.change_y = random.randrange(-4, 5)
-            human.circle_center_y = random.randrange(150, 700)
-            human.circle_center_x = random.randrange(150, 700)
-            human.circle_radius = random.randrange(10, 200)
-            human.circle_angle = random.random() * 2 * math.pi
-            # human.center_y = 1.5*BLOCK_SIZE*i
-            humans_sprites.append(human)
-        for i in range(8):
-            PowerPlant((i*3),1)
+        for i in range(10): Human()
+        for i in range(8): PowerPlant((i*3),1)
 
     def on_draw(self):
         """ Render the screen. """
@@ -172,13 +168,6 @@ class Window(arcade.Window):
         need it.
         """
         humans_sprites.update()
-        # preventing the collision with the buildings
-        # not working yet
-        for human in humans_sprites:
-            human.center_x += human.change_x
-            building_hit = arcade.check_for_collision_with_list(human, building_sprites)
-        if len(building_hit) > 0:
-            human.change_x *= -1
 
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """
