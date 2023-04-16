@@ -3,3 +3,4 @@ gui/__pycache__/
 classes/__pycache__/
 
 save.json
+.DS_Store
