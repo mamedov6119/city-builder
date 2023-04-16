@@ -2,7 +2,7 @@ from gameconfig import *;
 from classes.Human import *;
 from classes.Building import *;
 
-import arcade, arcade.gui, math, random, datetime;
+import arcade, arcade.gui, math, random, datetime, json;
 
 class Hover(arcade.Sprite):
     def __init__(self, size=0, color=arcade.color.RED):
@@ -21,10 +21,6 @@ class Hover(arcade.Sprite):
         self.center_y = ((j+1)*BLOCK_SIZE - (self.size)*BLOCK_SIZE/2)
 
 class Window(arcade.Window):
-    time = 0
-    boost = 1
-    items = []
-    money = 1000
     selected = -1
     hover_sprite = Hover()
     sidebtns = [
@@ -36,20 +32,16 @@ class Window(arcade.Window):
     ]
 
     """ Class which renders the field of the game. """
-    def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE):
-
+    def __init__(self, filename="save.json", width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE):
         super().__init__(width, height, title, False)
+        self.load(filename)
         arcade.set_background_color(arcade.color.AMAZON)
         self.menu_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidetop_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidebtm_manager = arcade.gui.UIManager(auto_enable=True)
 
         # Top-menu
-        self.v_box = arcade.gui.UIBoxLayout(vertical=False)
-        for i in ["x1", "x2", "x3", "||"]:
-            stl = {"bg_color": arcade.color.LIMERICK if f"x{self.boost}" == i else arcade.color.DARK_PUCE} if i != "||" else {}
-            self.v_box.add(arcade.gui.UIFlatButton(text=i, width=BLOCK_SIZE-4, height=BLOCK_SIZE-4, style=stl).with_space_around(right=2,top=2,bottom=2,left=2))
-        self.menu_manager.add(arcade.gui.UIAnchorWidget(anchor_x="right", anchor_y="top", child=self.v_box))
+        self.draw_topbar()
 
         # Side-menu (top)
         self.draw_sidetop()
@@ -57,21 +49,47 @@ class Window(arcade.Window):
         # Side-menu (bottom)
         self.hb_box = arcade.gui.UIBoxLayout(vertical=True)
         self.hb_box.add(arcade.gui.UIFlatButton(text='disaster', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4, style={"font_color": arcade.color.RED, "border_color": arcade.color.RED, "bg_color": arcade.color.TEA_ROSE}).with_space_around(right=2,top=2,bottom=2,left=2))
-        self.hb_box.add(arcade.gui.UIFlatButton(text='SAVE', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4).with_space_around(right=2,top=2,bottom=2,left=2))
+        save_btn = arcade.gui.UIFlatButton(text='SAVE', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4)
+        save_btn.on_click = lambda e: self.save()
+        self.hb_box.add(save_btn.with_space_around(right=2,top=2,bottom=2,left=2))
         self.sidebtm_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="bottom", child=self.hb_box, align_x=0, align_y=0))
 
+        # Add hover-sprite
         humans_sprites.append(self.hover_sprite)
+
+    def load(self, filename="save.json"):
+        self.boost = 1; self.items = []; self.time = 0; self.money = 1000
+        try:
+            with open(filename, "r") as f:
+                data = json.load(f)
+                self.time = data["time"] if "time" in data else self.time
+                self.boost = data["boost"] if "boost" in data else self.boost
+                self.money = data["money"] if "money" in data else self.money
+                self.items = data["items"] if "items" in data else self.items
+        except: pass
+        for item in self.items:
+            if item["type"] == "Powerplant": PowerPlant(item["x"],item["y"])
+            elif item["type"] == "Police Dep": PoliceDepartment(item["x"],item["y"])
+            elif item["type"] == "Fire Dep": FireDepartment(item["x"],item["y"])
+            elif item["type"] == "Stadium": Stadium(item["x"],item["y"])
+            elif item["type"] == "Workplace": WorkPlace(item["x"],item["y"])
+
+    def save(self, filename="save.json"):
+        print("Saving...")
+        with open(filename, "w") as f:
+            json.dump({"time": self.time, "boost": self.boost, "money": self.money, "items": self.items}, f)
 
     def set_select(self, e):
         self.selected = e.source.text if self.selected != e.source.text else -1
-
         if self.selected != -1:
             dim = self.sidebtns[[i["text"] for i in self.sidebtns].index(self.selected)]["class"].getDim()
             self.hover_sprite.set_size(dim)
-        else:
-            self.hover_sprite.set_size(0)
-
+        else: self.hover_sprite.set_size(0)
         self.draw_sidetop()
+
+    def set_boost(self, e):
+        self.boost = int(e.source.text[1])
+        self.draw_topbar()
 
     def draw_sidetop(self):
         self.ht_box = arcade.gui.UIBoxLayout(vertical=True)
@@ -80,6 +98,16 @@ class Window(arcade.Window):
             btn.on_click = lambda e: self.set_select(e)
             self.ht_box.add(btn.with_space_around(right=1,top=1,bottom=1,left=1))
         self.sidetop_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="top", child=self.ht_box, align_x=BLOCK_SIZE//2, align_y=-BLOCK_SIZE))
+
+    def draw_topbar(self):
+        self.v_box = arcade.gui.UIBoxLayout(vertical=False)
+        for i in ["x1", "x2", "x3", "||"]:
+            stl = {"bg_color": arcade.color.LIMERICK if f"x{self.boost}" == i else arcade.color.DARK_PUCE} if i != "||" else {}
+            btn = arcade.gui.UIFlatButton(text=i, width=BLOCK_SIZE-4, height=BLOCK_SIZE-4, style=stl)
+            if i == "||": btn.on_click = lambda e: self.save()
+            else: btn.on_click = lambda e: self.set_boost(e)
+            self.v_box.add(btn.with_space_around(right=2,top=2,bottom=2,left=2))
+        self.menu_manager.add(arcade.gui.UIAnchorWidget(anchor_x="right", anchor_y="top", child=self.v_box))
 
     def show_date(self):
         """ Show the date """
@@ -154,12 +182,13 @@ class Window(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """
+        if (key == 65307): self.save()
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
         """ Called whenever the mouse moves. """
         if self.selected != -1:
             i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
-            if (i >= 0 and j >= 0):
+            if (0 <= i and 0 <= j <= 14):
                 self.hover_sprite.update_pos(i,j)
         
 
@@ -167,11 +196,12 @@ class Window(arcade.Window):
         """ Called when the user presses a mouse button. """
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
         # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
-        if (i >= 0 and j >= 0 and self.selected != -1):
+        if (0 <= i and 0 <= j <= 14 and self.selected != -1):
             if self.selected == "Powerplant": PowerPlant(i,j)
             elif self.selected == "Police Dep": PoliceDepartment(i,j)
             elif self.selected == "Fire Dep": FireDepartment(i,j)
             elif self.selected == "Stadium": Stadium(i,j)
             elif self.selected == "Workplace": WorkPlace(i,j)
+            self.items.append({"x": i, "y": j, "type": self.selected})
                 
             
