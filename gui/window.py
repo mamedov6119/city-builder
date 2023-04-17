@@ -186,11 +186,11 @@ class Window(arcade.Window):
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
         # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
         if (0 <= i and 0 <= j <= 14 and self.selected != -1):
-            if self.selected == "Powerplant": PowerPlant(i,j)
-            elif self.selected == "Police Dep": PoliceDepartment(i,j)
-            elif self.selected == "Fire Dep": FireDepartment(i,j)
-            elif self.selected == "Stadium": Stadium(i,j)
-            elif self.selected == "Workplace": WorkPlace(i,j)
+            a = None
+            if self.selected == "Powerplant": a = PowerPlant(i,j)
+            elif self.selected == "Police Dep": a = PoliceDepartment(i,j)
+            elif self.selected == "Fire Dep": a = FireDepartment(i,j)
+            elif self.selected == "Stadium": a = Stadium(i,j)
+            self.money -= a.cost
             self.items.append({"x": i, "y": j, "type": self.selected})
-                
             
