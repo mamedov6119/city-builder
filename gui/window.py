@@ -87,7 +87,6 @@ class Window(arcade.Window):
         if self.selected != -1 and self.selected != "Remove":
             dim = self.sidebtns[[i["text"] for i in self.sidebtns].index(self.selected)]["class"].getDim()
             self.hover_sprite.set_size(dim)
-        elif self.selected == "Remove": self.hover_sprite.set_size(2)
         else: self.hover_sprite.set_size(0)
         self.draw_sidetop()
 
@@ -126,9 +125,6 @@ class Window(arcade.Window):
         # Side-menu & Top-menu
         arcade.draw_rectangle_filled((3*BLOCK_SIZE)/2, SCREEN_HEIGHT/2, 3*BLOCK_SIZE, SCREEN_HEIGHT, arcade.color.DARK_GRAY)
         arcade.draw_rectangle_filled(SCREEN_WIDTH/2, SCREEN_HEIGHT - (BLOCK_SIZE/2), SCREEN_WIDTH, BLOCK_SIZE, arcade.color.GRAY)
-
-        # test boundaries rectangle
-        # arcade.draw_rectangle_filled(SCREEN_WIDTH/2+1.5*BLOCK_SIZE, SCREEN_HEIGHT/2-BLOCK_SIZE, SCREEN_WIDTH-3*BLOCK_SIZE, SCREEN_HEIGHT-BLOCK_SIZE, arcade.color.BLACK)
 
         # Money 
         arcade.draw_text(f"Funds: ${self.money:,}", 10, SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier")
@@ -180,17 +176,11 @@ class Window(arcade.Window):
             if (0 <= i and 0 <= j <= 14):
                 self.hover_sprite.update_pos(i,j)
         
-        # self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
-        # self.center_y = ((y+1)*BLOCK_SIZE - (self.dim)*BLOCK_SIZE/2)
     def find_sprite(self, x, y):
         # Loop through all of your sprites and check their positions
         for sprite in building_sprites:
             if (x+3)*BLOCK_SIZE <= sprite.center_x <= ((x+3)*BLOCK_SIZE + (2)*BLOCK_SIZE) and (y+1)*BLOCK_SIZE <= sprite.center_y <= ((y+1)*BLOCK_SIZE - (2)*BLOCK_SIZE):
-                # Return the sprite if its position matches
-                print(sprite)
                 return sprite
-        
-        # If no sprite was found, return None
         return None
 
     def getBuildingType(self, c):
@@ -199,28 +189,25 @@ class Window(arcade.Window):
         elif c.__class__.__name__ == "FireDepartment": return "Fire Dep"
         elif c.__class__.__name__ == "Stadium": return "Stadium"
         
-
-
     def on_mouse_press(self, x, y, button, key_modifiers):
         """ Called when the user presses a mouse button. """
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
         # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
-        if (0 <= i and 0 <= j <= 14 and self.selected != -1):
-            a = None
-            if self.selected == "Powerplant": a = PowerPlant(i,j)
-            elif self.selected == "Police Dep": a = PoliceDepartment(i,j)
-            elif self.selected == "Fire Dep": a = FireDepartment(i,j)
-            elif self.selected == "Stadium": a = Stadium(i,j)
-            elif self.selected == "Remove": 
-                try:
+        try:
+            if (0 <= i and 0 <= j <= 14 and self.selected != -1):
+                a = None
+                if self.selected == "Powerplant": a = PowerPlant(i,j)
+                elif self.selected == "Police Dep": a = PoliceDepartment(i,j)
+                elif self.selected == "Fire Dep": a = FireDepartment(i,j)
+                elif self.selected == "Stadium": a = Stadium(i,j)
+                elif self.selected == "Remove": 
                     a = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
                     a.cost *= -1
                     building_sprites.remove(a)
-                except: pass
-            self.money -= a.cost
-            if self.selected != "Remove": self.items.append({"x": i, "y": j, "type": self.selected})
-            else: self.items.remove({"x": i, "y": j, "type": self.getBuildingType(a)})
-            # self.items.append({"x": i, "y": j, "type": self.selected})
+                self.money -= a.cost
+                if self.selected != "Remove": self.items.append({"x": i, "y": j, "type": self.selected})
+                else: self.items.remove({"x": i, "y": j, "type": self.getBuildingType(a)})
+        except: pass
 
                 
             
