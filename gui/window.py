@@ -30,7 +30,8 @@ class Window(arcade.Window):
         {"text": "Police Dep", "color": arcade.color.AZURE, "class": PoliceDepartment()},  
         {"text": "Fire Dep", "color": arcade.color.ALABAMA_CRIMSON, "class": FireDepartment()},   
         {"text": "Stadium", "color": arcade.color.BURNT_ORANGE, "class": Stadium()},
-        {"text": "Workplace", "color": arcade.color.DARK_PUCE, "class": WorkPlace()}
+        {"text": "Road", "color": arcade.color.DARK_PUCE, "class": Road()},
+        {"text": "Fire", "color": arcade.color.RED, "class": Fire()}
     ]
 
     """ Class which renders the field of the game. """
@@ -160,6 +161,7 @@ class Window(arcade.Window):
         self.sidebtm_manager.draw()
         humans_sprites.draw()
         building_sprites.draw()
+        fireTruck_sprites.draw()
 
     def on_update(self, delta_time):
         """
@@ -191,6 +193,8 @@ class Window(arcade.Window):
             elif self.selected == "Fire Dep": FireDepartment(i,j)
             elif self.selected == "Stadium": Stadium(i,j)
             elif self.selected == "Workplace": WorkPlace(i,j)
+            elif self.selected == "Road": Road(i,j)
+            elif self.selected == "Fire": Fire(i,j)
             self.items.append({"x": i, "y": j, "type": self.selected})
                 
             
