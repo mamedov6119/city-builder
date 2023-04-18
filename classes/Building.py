@@ -71,3 +71,20 @@ class House(Building):
 class WorkPlace(Building):
     def __init__(self, x=-1, y=-1):
         super().__init__("WorkPlace.png", capacity=30, dim=1, x=x, y=y)
+
+class Road(Building):
+    images = ["Road.png", "RoadL.png", "CrossRoad.png"]
+
+    def __init__(self, x=-1, y=-1, index=0):
+        super().__init__("Road.png", dim=1, x=x, y=y, cost=0)
+        self.index = index
+        # check if there is a collision with another road
+        a = arcade.check_for_collision_with_list(self, building_sprites)
+        if len(a) > 0 and a[0].__class__.__name__ == "Road":
+            a[0].index = (a[0].index + 1) % len(a[0].images)
+            a[0].texture = arcade.load_texture("./images/" + a[0].images[a[0].index])
+            self.kill()
+            return
+
+    def rotate(self):
+        self.turn_left(90)

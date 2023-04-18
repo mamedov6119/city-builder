@@ -22,14 +22,30 @@ class Hover(arcade.Sprite):
         self.center_x = ((i+3)*BLOCK_SIZE + (self.size)*BLOCK_SIZE/2)
         self.center_y = ((j+1)*BLOCK_SIZE - (self.size)*BLOCK_SIZE/2)
 
+class RotateMode(arcade.Sprite):
+    def __init__(self, size=20, color=arcade.color.RED):
+        self.e = arcade.Texture.create_empty(name="empty", size=(0,0))
+        self.t = arcade.Texture(name="text", image=arcade.create_text_image("Rotate mode ON", color, size))
+        super().__init__(texture=self.e)
+        self.center_x = SCREEN_WIDTH - 100
+        self.center_y = SCREEN_HEIGHT - 50
+        self.on = False 
+
+    def toggle(self, state):
+        self.on = state
+        self.texture = self.t if state else self.e
+
 class Window(arcade.Window):
     selected = -1
+    rotate = False
     hover_sprite = Hover()
+    rotate_sprite = RotateMode()
     sidebtns = [
         {"text": "Powerplant", "color": arcade.color.DARK_PUCE, "class": PowerPlant()},
         {"text": "Police Dep", "color": arcade.color.AZURE, "class": PoliceDepartment()},  
         {"text": "Fire Dep", "color": arcade.color.ALABAMA_CRIMSON, "class": FireDepartment()},   
         {"text": "Stadium", "color": arcade.color.BURNT_ORANGE, "class": Stadium()},
+        {"text": "Road", "color": arcade.color.BLACK, "class": Road()},
         {"text": "Remove", "color": arcade.color.RED, "class": None}
     ]
 
@@ -58,6 +74,7 @@ class Window(arcade.Window):
 
         # Add hover-sprite
         humans_sprites.append(self.hover_sprite)
+        humans_sprites.append(self.rotate_sprite)
 
     def load(self, filename="save.json"):
         global speed
@@ -78,9 +95,10 @@ class Window(arcade.Window):
             elif item["type"] == "Stadium": Stadium(item["x"],item["y"])
 
     def save(self, filename="save.json"):
-        print("Saving...")
+        print("Saving...", end=" ")
         with open(filename, "w") as f:
             json.dump({"time": self.time, "boost": self.boost, "money": self.money, "items": self.items}, f)
+        print("Save complete!")
 
     def set_select(self, e):
         self.selected = e.source.text if self.selected != e.source.text else -1
@@ -168,6 +186,9 @@ class Window(arcade.Window):
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """
         if (key == 65307): self.save()
+        if (key == 114):
+            self.rotate = not self.rotate
+            self.rotate_sprite.toggle(self.rotate)
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
         """ Called whenever the mouse moves. """
@@ -194,12 +215,17 @@ class Window(arcade.Window):
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
         # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
         try:
+            if (self.rotate and 0 <= i and 0 <= j <= 14):
+                c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
+                if c.__class__.__name__ == "Road": c.rotate()
+
             if (0 <= i and 0 <= j <= 14 and self.selected != -1):
                 a = None
                 if self.selected == "Powerplant": a = PowerPlant(i,j)
                 elif self.selected == "Police Dep": a = PoliceDepartment(i,j)
                 elif self.selected == "Fire Dep": a = FireDepartment(i,j)
                 elif self.selected == "Stadium": a = Stadium(i,j)
+                elif self.selected == "Road": a = Road(i,j)
                 elif self.selected == "Remove": 
                     a = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
                     a.cost *= -1
@@ -207,7 +233,8 @@ class Window(arcade.Window):
                 self.money -= a.cost
                 if self.selected != "Remove": self.items.append({"x": i, "y": j, "type": self.selected})
                 else: self.items.remove({"x": i, "y": j, "type": self.getBuildingType(a)})
-        except: pass
+        except Exception as e:
+            print(e)
 
                 
             
