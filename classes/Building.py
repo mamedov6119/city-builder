@@ -65,7 +65,7 @@ class Stadium(Building):
         self.bonus = bonus
 
 class House(Building):
-    def __init__(self):
+    def __init__(self, x=-1, y=-1):
         super().__init__("House.png", capacity=20)
 
 class WorkPlace(Building):

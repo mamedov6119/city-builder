@@ -40,6 +40,7 @@ class Window(arcade.Window):
     rotate = False
     hover_sprite = Hover()
     rotate_sprite = RotateMode()
+
     sidebtns = [
         {"text": "Powerplant", "color": arcade.color.DARK_PUCE, "class": PowerPlant()},
         {"text": "Police Dep", "color": arcade.color.AZURE, "class": PoliceDepartment()},  
@@ -75,6 +76,7 @@ class Window(arcade.Window):
         # Add hover-sprite
         humans_sprites.append(self.hover_sprite)
         humans_sprites.append(self.rotate_sprite)
+
 
     def load(self, filename="save.json"):
         global speed
@@ -213,7 +215,7 @@ class Window(arcade.Window):
     def on_mouse_press(self, x, y, button, key_modifiers):
         """ Called when the user presses a mouse button. """
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
-        # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
+        print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
         try:
             if (self.rotate and 0 <= i and 0 <= j <= 14):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
