@@ -1,7 +1,8 @@
 from gameconfig import *;
 
-import gui.window as w;
+# import gui.window as w;
 import arcade, math, random;
+from logic.variables import v;
 from arcade import check_for_collision_with_list;
 
 class Human(arcade.Sprite):
@@ -19,7 +20,7 @@ class Human(arcade.Sprite):
             + self.circle_center_x
         self.center_y = self.circle_radius * math.cos(self.circle_angle) \
             + self.circle_center_y
-        self.circle_angle += HUMAN_SPEED * w.speed
+        self.circle_angle += HUMAN_SPEED * v.speed
         self.check_boundary_collision()
 
     def collides_with_list(self, sprite_list):

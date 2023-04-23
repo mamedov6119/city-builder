@@ -1,5 +1,6 @@
 __pycache__/
 gui/__pycache__/
+logic/__pycache__/
 classes/__pycache__/
 
 save.json

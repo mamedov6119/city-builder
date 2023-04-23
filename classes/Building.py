@@ -1,5 +1,4 @@
 from gameconfig import *;
-
 import arcade;
 
 class Building(arcade.Sprite):
@@ -9,12 +8,13 @@ class Building(arcade.Sprite):
         self.capacity = capacity
         self.cost = cost
         self.dim = dim
+        self.x = x
+        self.y = y
         if (x != -1 and y != -1):
             self.place(x,y)
             self.append()
 
     def place(self,x,y):
-        # print(f"x:{x}, y:{y}. BX:{x*BLOCK_SIZE}, BY:{y*BLOCK_SIZE}")
         self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
         self.center_y = ((y+1)*BLOCK_SIZE - (self.dim)*BLOCK_SIZE/2)
 

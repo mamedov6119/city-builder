@@ -2,9 +2,8 @@ from gameconfig import *;
 from classes.Human import *;
 from classes.Building import *;
 
-import arcade, arcade.gui, math, random, datetime, json;
-
-speed = 1 # as global
+from logic.variables import v;
+import arcade, arcade.gui, datetime, json;
 
 class Hover(arcade.Sprite):
     def __init__(self, size=0, color=arcade.color.RED):
@@ -31,13 +30,12 @@ class RotateMode(arcade.Sprite):
         self.center_y = SCREEN_HEIGHT - 50
         self.on = False 
 
-    def toggle(self, state):
-        self.on = state
-        self.texture = self.t if state else self.e
+    def toggle(self):
+        self.on = not self.on
+        self.texture = self.t if self.on else self.e
 
 class Window(arcade.Window):
     selected = -1
-    rotate = False
     hover_sprite = Hover()
     rotate_sprite = RotateMode()
 
@@ -64,7 +62,7 @@ class Window(arcade.Window):
 
         # Side-menu (top)
         self.draw_sidetop()
-        
+    
         # Side-menu (bottom)
         self.hb_box = arcade.gui.UIBoxLayout(vertical=True)
         self.hb_box.add(arcade.gui.UIFlatButton(text='disaster', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4, style={"font_color": arcade.color.RED, "border_color": arcade.color.RED, "bg_color": arcade.color.TEA_ROSE}).with_space_around(right=2,top=2,bottom=2,left=2))
@@ -79,28 +77,12 @@ class Window(arcade.Window):
 
 
     def load(self, filename="save.json"):
-        global speed
-        self.boost = 1; self.items = []; self.time = 0; self.money = 1000
-        try:
-            with open(filename, "r") as f:
-                data = json.load(f)
-                self.time = data["time"] if "time" in data else self.time
-                self.boost = data["boost"] if "boost" in data else self.boost
-                self.money = data["money"] if "money" in data else self.money
-                self.items = data["items"] if "items" in data else self.items
-        except: pass
-        speed = self.boost
-        for item in self.items:
-            if item["type"] == "Powerplant": PowerPlant(item["x"],item["y"])
-            elif item["type"] == "Police Dep": PoliceDepartment(item["x"],item["y"])
-            elif item["type"] == "Fire Dep": FireDepartment(item["x"],item["y"])
-            elif item["type"] == "Stadium": Stadium(item["x"],item["y"])
+        v.load(filename)
+        for item in v.items:
+            eval(item["type"])(item["x"],item["y"])
 
     def save(self, filename="save.json"):
-        print("Saving...", end=" ")
-        with open(filename, "w") as f:
-            json.dump({"time": self.time, "boost": self.boost, "money": self.money, "items": self.items}, f)
-        print("Save complete!")
+        v.save(filename)
 
     def set_select(self, e):
         self.selected = e.source.text if self.selected != e.source.text else -1
@@ -110,11 +92,9 @@ class Window(arcade.Window):
         else: self.hover_sprite.set_size(0)
         self.draw_sidetop()
 
-    def set_boost(self, e):
-        global speed
-        self.boost = int(e.source.text[1])
+    def set_speed(self, e):
+        v.change_speed(int(e.source.text[1]))
         self.draw_topbar()
-        speed = self.boost
 
     def draw_sidetop(self):
         self.ht_box = arcade.gui.UIBoxLayout(vertical=True)
@@ -127,17 +107,17 @@ class Window(arcade.Window):
     def draw_topbar(self):
         self.v_box = arcade.gui.UIBoxLayout(vertical=False)
         for i in ["x1", "x2", "x3", "||"]:
-            stl = {"bg_color": arcade.color.LIMERICK if f"x{self.boost}" == i else arcade.color.DARK_PUCE} if i != "||" else {}
+            stl = {"bg_color": arcade.color.LIMERICK if f"x{v.speed}" == i else arcade.color.DARK_PUCE} if i != "||" else {}
             btn = arcade.gui.UIFlatButton(text=i, width=BLOCK_SIZE-4, height=BLOCK_SIZE-4, style=stl)
             if i == "||": btn.on_click = lambda e: self.save()
-            else: btn.on_click = lambda e: self.set_boost(e)
+            else: btn.on_click = lambda e: self.set_speed(e)
             self.v_box.add(btn.with_space_around(right=2,top=2,bottom=2,left=2))
         self.menu_manager.add(arcade.gui.UIAnchorWidget(anchor_x="right", anchor_y="top", child=self.v_box))
 
     def show_date(self):
         """ Show the date """
         startdate = datetime.date(2000, 1, 1)
-        result = startdate + datetime.timedelta(days=self.time)
+        result = startdate + datetime.timedelta(days=v.time)
         return result.strftime("%d %B %Y")
 
     def show_menu(self):
@@ -147,7 +127,7 @@ class Window(arcade.Window):
         arcade.draw_rectangle_filled(SCREEN_WIDTH/2, SCREEN_HEIGHT - (BLOCK_SIZE/2), SCREEN_WIDTH, BLOCK_SIZE, arcade.color.GRAY)
 
         # Money 
-        arcade.draw_text(f"Funds: ${self.money:,}", 10, SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier")
+        arcade.draw_text(f"Funds: ${v.money:,}", 10, SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier")
 
         # Time (right-aligned)
         # arcade.draw_text(self.show_date(), (SCREEN_WIDTH - 10) - BLOCK_SIZE*4, SCREEN_HEIGHT - 20, arcade.color.APRICOT, 14, font_name="Courier", anchor_x="right")
@@ -163,7 +143,7 @@ class Window(arcade.Window):
             arcade.draw_line(BLOCK_SIZE*3, y, SCREEN_WIDTH, y, arcade.color.GRAY, 1)
 
     def setup(self):
-        for i in range(10): Human()
+        for _ in range(10): Human()
         # for i in range(8): PowerPlant((i*3),1)
 
     def on_draw(self):
@@ -188,9 +168,7 @@ class Window(arcade.Window):
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """
         if (key == 65307): self.save()
-        if (key == 114):
-            self.rotate = not self.rotate
-            self.rotate_sprite.toggle(self.rotate)
+        if (key == 114): self.rotate_sprite.toggle()
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
         """ Called whenever the mouse moves. """
@@ -206,35 +184,23 @@ class Window(arcade.Window):
                 return sprite
         return None
 
-    def getBuildingType(self, c):
-        if c.__class__.__name__ == "PowerPlant": return "Powerplant"
-        elif c.__class__.__name__ == "PoliceDepartment": return "Police Dep"
-        elif c.__class__.__name__ == "FireDepartment": return "Fire Dep"
-        elif c.__class__.__name__ == "Stadium": return "Stadium"
-        
     def on_mouse_press(self, x, y, button, key_modifiers):
         """ Called when the user presses a mouse button. """
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
         print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
         try:
-            if (self.rotate and 0 <= i and 0 <= j <= 14):
+            if (self.rotate_sprite.on and 0 <= i and 0 <= j <= 14):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
                 if c.__class__.__name__ == "Road": c.rotate()
 
             if (0 <= i and 0 <= j <= 14 and self.selected != -1):
-                a = None
-                if self.selected == "Powerplant": a = PowerPlant(i,j)
-                elif self.selected == "Police Dep": a = PoliceDepartment(i,j)
-                elif self.selected == "Fire Dep": a = FireDepartment(i,j)
-                elif self.selected == "Stadium": a = Stadium(i,j)
-                elif self.selected == "Road": a = Road(i,j)
-                elif self.selected == "Remove": 
-                    a = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
-                    a.cost *= -1
-                    building_sprites.remove(a)
-                self.money -= a.cost
-                if self.selected != "Remove": self.items.append({"x": i, "y": j, "type": self.selected})
-                else: self.items.remove({"x": i, "y": j, "type": self.getBuildingType(a)})
+                if self.selected != 'Remove':
+                    target = None
+                    for item in self.sidebtns:
+                        if item['text'] == self.selected:
+                            target = item['class'].__class__
+                    v.place_building(building=target, x=i, y=j)
+                else: v.remove_building(i, j)
         except Exception as e:
             print(e)
 
