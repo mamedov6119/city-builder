@@ -7,6 +7,12 @@ class Variables:
     items = []
     money = 1000
 
+    def reset(self):
+        self.time = 0
+        self.speed = 1
+        self.items = []
+        self.money = 1000
+
     def load(self, filename):
         """ Load the game from a file """
         try:
@@ -16,7 +22,7 @@ class Variables:
                 self.speed = data["speed"] if "speed" in data else self.speed
                 self.money = data["money"] if "money" in data else self.money
                 self.items = data["items"] if "items" in data else self.items
-        except: pass
+        except: self.reset()
 
     def save(self, filename):
         """ Save the game to a file """

@@ -1,6 +1,8 @@
 __pycache__/
+htmlcov/
 
 save.json
+.coverage
 .DS_Store
 
 .vscode/

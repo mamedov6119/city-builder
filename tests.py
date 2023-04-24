@@ -1,15 +1,59 @@
 import unittest, json, os
 from gameconfig import *
-from logic.variables import v
 from classes.Building import *
+from logic.variables import v, Variables
+
+class Buildings(unittest.TestCase):
+    def setup(self):
+        """ Setup a new game """
+        v.reset()
+        humans_sprites.clear()
+        building_sprites.clear()
+
+    def test_road(self):
+        self.setup()
+        road = Road(0,0)
+        self.assertEqual(road.index, 0)
+        self.assertEqual(road.getDim(), 1)
+        self.assertEqual(road.getCost(), 0)
+        self.assertEqual(road.getMaintenance(), 0)
+    
+    def test_road_types(self):
+        self.setup()
+        road = Road(0,0)
+        Road(0,0) # Place another (same index) to change the type
+        road.rotate() # No error should be raised
+        self.assertEqual(road.index, 1)
+    
+    def test_capacity(self):
+        self.setup()
+        self.assertEqual(PowerPlant(0,0).getCapacity(), 30)
+        self.assertEqual(FireDepartment(2,2).getCapacity(), 20)
+        self.assertEqual(PoliceDepartment(4,4).getCapacity(), 20)
+
+    def test_safety_radius(self):
+        self.setup()
+        self.assertEqual(FireDepartment(0,0).getSafetyRadius(), 1)
+        self.assertEqual(PoliceDepartment(2,2).getSafetyRadius(), 1)
+
+    def test_other_buildings(self):
+        self.setup()
+        h = House()
+        self.assertEqual(h.x, -1)
+        self.assertEqual(h.y, -1)
+        self.assertEqual(h.getDim(), 1)
+        w = WorkPlace()
+        self.assertEqual(w.x, -1)
+        self.assertEqual(w.y, -1)
+        self.assertEqual(w.getDim(), 1)
+
 
 class Logic(unittest.TestCase):
     def setup(self):
         """ Setup a new game """
-        v.money = 1000
-        v.items = []
-        building_sprites.clear()
+        v.reset()
         humans_sprites.clear()
+        building_sprites.clear()
         self.buildings = [PowerPlant, FireDepartment, PoliceDepartment, Stadium, Road]
 
     def test_building_empty(self):
@@ -87,41 +131,62 @@ class Logic(unittest.TestCase):
             self.assertEqual(v.money, m)
             pos += 2
 
-    def test_save(self):
-        """ Save game """
-        self.setup()
-        v.place_building(PowerPlant, 0, 0)
-        v.save('test.json')
-        data = None
-        with open('test.json', 'r') as f:
-            data = json.load(f)
-        self.assertEqual(len(data["items"]), 1)
-        os.remove('test.json')
-
-    def test_load(self):
-        """ Load game """
-        self.setup()
-        v.place_building(PowerPlant, 0, 0)
-        v.save('test.json')
-        v.load('test.json')
-        self.assertEqual(len(v.items), 1)
-        os.remove('test.json')
-
     def test_speed_method(self):
         """ Speed check using method """
         self.setup()
         v.change_speed(2)
         self.assertEqual(v.speed, 2)
 
-    def test_save_speed_method(self):
-        """ Speed check using method """
+class Saves(unittest.TestCase):
+    def setup(self):
+        """ Setup a new game """
+        v.reset()
+        humans_sprites.clear()
+        building_sprites.clear()
+
+    def test_save(self):
+        """ Save game """
+        building = PowerPlant; pos = 0
         self.setup()
-        v.change_speed(2)
+        v.place_building(building, pos, pos)
         v.save('test.json')
         data = None
         with open('test.json', 'r') as f:
             data = json.load(f)
-        self.assertEqual(data["speed"], 2)
+        self.assertEqual(len(data["items"]), 1)
+        self.assertEqual(data["items"][0]["type"], building.__name__)
+        os.remove('test.json')
+
+    def test_load(self):
+        """ Load game """
+        building = PowerPlant; pos = 0
+        self.setup()
+        v.place_building(building, pos, pos)
+        v.save('test.json')
+        v.load('test.json')
+        self.assertEqual(len(v.items), 1)
+        self.assertEqual(v.items[0]['type'], building.__name__)
+        os.remove('test.json')
+    
+    def test_load_unexistent(self):
+        """ Load unexistent file """
+        self.setup()
+        v.load('test.json')
+        self.assertEqual(v.time, 0)
+        self.assertEqual(v.speed, 1)
+        self.assertEqual(v.money, 1000)
+        self.assertEqual(len(v.items), 0)
+
+    def test_save_speed_method(self):
+        """ Speed check using method """
+        speed = 3
+        self.setup()
+        v.change_speed(speed)
+        v.save('test.json')
+        data = None
+        with open('test.json', 'r') as f:
+            data = json.load(f)
+        self.assertEqual(data["speed"], speed)
         os.remove('test.json')
 
 if __name__ == '__main__':
