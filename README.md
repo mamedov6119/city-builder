@@ -1,4 +1,7 @@
 ## City Builder
+
+![pipeline](https://szofttech.inf.elte.hu/software-technology-2023/group-2/game-gurus/badges/master/pipeline.svg) 
+
 The project is similar to Sim City, which allows user to place the buildings, simulate the city-life and summon the disasters.
 
 ## Installation
