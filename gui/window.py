@@ -35,6 +35,45 @@ class RotateMode(arcade.Sprite):
         self.texture = self.t if self.on else self.e
 
 class Window(arcade.Window):
+    def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE, filename="save.json"):
+        super().__init__(width, height, title, False)
+        self.menu_view = MenuView()
+        self.game_view = GameView(filename)
+        self.show_view(self.menu_view)
+
+
+class MenuView(arcade.View):
+    def __init__(self):
+        super().__init__()
+        self.menu_manager = arcade.gui.UIManager(auto_enable=True)
+        self.setup()
+
+    def setup(self):
+        self.box = arcade.gui.UIBoxLayout(vertical=True)
+
+        play_btn = arcade.gui.UIFlatButton(text="Play", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2, style={"bg_color": arcade.color.APPLE_GREEN, "font_color": arcade.color.WHITE})
+        play_btn.on_click = lambda _: self.window.show_view(self.window.game_view)
+        self.box.add(play_btn.with_space_around(top=10))
+
+        load_btn = arcade.gui.UIFlatButton(text="Load", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2)
+        load_btn.on_click = lambda _: self.window.show_view(self.window.game_view)
+        self.box.add(load_btn.with_space_around(top=10))
+
+        exit_btn = arcade.gui.UIFlatButton(text="Exit", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2, style={"bg_color": arcade.color.ALABAMA_CRIMSON, "font_color": arcade.color.WHITE})
+        exit_btn.on_click = lambda _: self.window.close()
+        self.box.add(exit_btn.with_space_around(top=10))
+
+        self.menu_manager.add(arcade.gui.UIAnchorWidget(anchor_x="center", anchor_y="center", child=self.box, align_x=0, align_y=0))
+
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.DARK_BLUE_GRAY)
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_text("Menu", SCREEN_WIDTH//2, SCREEN_HEIGHT - 2*BLOCK_SIZE, arcade.color.WHITE, font_size=50, anchor_x="center", anchor_y="top")
+        self.menu_manager.draw()
+
+class GameView(arcade.View):
     selected = -1
     hover_sprite = Hover()
     rotate_sprite = RotateMode()
@@ -49,34 +88,17 @@ class Window(arcade.Window):
     ]
 
     """ Class which renders the field of the game. """
-    def __init__(self, filename="save.json", width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE):
-        super().__init__(width, height, title, False)
+    def __init__(self, filename):
+        super().__init__()
         self.load(filename)
         arcade.set_background_color(arcade.color.AMAZON)
         self.menu_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidetop_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidebtm_manager = arcade.gui.UIManager(auto_enable=True)
+        self.setup()
 
-        # Top-menu
-        self.draw_topbar()
-
-        # Side-menu (top)
-        self.draw_sidetop()
-    
-        # Side-menu (bottom)
-        self.hb_box = arcade.gui.UIBoxLayout(vertical=True)
-        dis_btn = arcade.gui.UIFlatButton(text='disaster', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4, style={"font_color": arcade.color.RED, "border_color": arcade.color.RED, "bg_color": arcade.color.TEA_ROSE})
-        dis_btn.on_click = lambda e: v.summon_disaster()
-        self.hb_box.add(dis_btn.with_space_around(right=2,top=2,bottom=2,left=2))
-        save_btn = arcade.gui.UIFlatButton(text='SAVE', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4)
-        save_btn.on_click = lambda e: self.save()
-        self.hb_box.add(save_btn.with_space_around(right=2,top=2,bottom=2,left=2))
-        self.sidebtm_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="bottom", child=self.hb_box, align_x=0, align_y=0))
-
-        # Add hover-sprite
-        humans_sprites.append(self.hover_sprite)
-        humans_sprites.append(self.rotate_sprite)
-
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.AMAZON)
 
     def load(self, filename="save.json"):
         v.load(filename)
@@ -116,10 +138,14 @@ class Window(arcade.Window):
         for i in ["x1", "x2", "x3", "||"]:
             stl = {"bg_color": arcade.color.LIMERICK if f"x{v.speed}" == i else arcade.color.DARK_PUCE} if i != "||" else {}
             btn = arcade.gui.UIFlatButton(text=i, width=BLOCK_SIZE-4, height=BLOCK_SIZE-4, style=stl)
-            if i == "||": btn.on_click = lambda e: self.save()
+            if i == "||": btn.on_click = lambda _: self.back_to_menu()
             else: btn.on_click = lambda e: self.set_speed(e)
             self.v_box.add(btn.with_space_around(right=2,top=2,bottom=2,left=2))
         self.menu_manager.add(arcade.gui.UIAnchorWidget(anchor_x="right", anchor_y="top", child=self.v_box))
+
+    def back_to_menu(self):
+        self.save()
+        self.window.show_view(self.window.menu_view)
 
     def show_date(self):
         """ Show the date """
@@ -150,8 +176,26 @@ class Window(arcade.Window):
             arcade.draw_line(BLOCK_SIZE*3, y, SCREEN_WIDTH, y, arcade.color.GRAY, 1)
 
     def setup(self):
+        # Top-menu
+        self.draw_topbar()
+
+        # Side-menu (top)
+        self.draw_sidetop()
+
+        # Side-menu (bottom)
+        self.hb_box = arcade.gui.UIBoxLayout(vertical=True)
+        self.hb_box.add(arcade.gui.UIFlatButton(text='disaster', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4, style={"font_color": arcade.color.RED, "border_color": arcade.color.RED, "bg_color": arcade.color.TEA_ROSE}).with_space_around(right=2,top=2,bottom=2,left=2))
+        save_btn = arcade.gui.UIFlatButton(text='SAVE', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4)
+        save_btn.on_click = lambda e: self.save()
+        self.hb_box.add(save_btn.with_space_around(right=2,top=2,bottom=2,left=2))
+        self.sidebtm_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="bottom", child=self.hb_box, align_x=0, align_y=0))
+
+        # Add hover-sprite
+        humans_sprites.append(self.hover_sprite)
+        humans_sprites.append(self.rotate_sprite)
+        
+        # Place humans
         for _ in range(10): Human()
-        # for i in range(8): PowerPlant((i*3),1)
 
     def on_draw(self):
         """ Render the screen. """
@@ -194,7 +238,7 @@ class Window(arcade.Window):
     def on_mouse_press(self, x, y, button, key_modifiers):
         """ Called when the user presses a mouse button. """
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
-        print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
+        # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
         try:
             if (self.rotate_sprite.on and 0 <= i and 0 <= j <= 14):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
@@ -210,6 +254,4 @@ class Window(arcade.Window):
                 else: v.remove_building(i, j)
         except Exception as e:
             print(e)
-
-                
-            
+    
