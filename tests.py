@@ -13,8 +13,10 @@ class Buildings(unittest.TestCase):
     def test_road(self):
         """ Placement of a road """
         self.setup()
-        road = Road(0,0)
+        v.place_building(Road, 0, 0)
+        road = building_sprites[0]
         self.assertEqual(road.index, 0)
+        self.assertEqual(road.rotation, 0)
         self.assertEqual(road.getDim(), 1)
         self.assertEqual(road.getCost(), 0)
         self.assertEqual(road.getMaintenance(), 0)
@@ -22,10 +24,23 @@ class Buildings(unittest.TestCase):
     def test_road_types(self):
         """ Ability to change the road type """
         self.setup()
-        road = Road(0,0)
-        Road(0,0) # Place another (same index) to change the type
-        road.rotate() # No error should be raised
-        self.assertEqual(road.index, 1)
+        v.place_building(Road, 0, 0)
+        # Place another (same index) to change the type
+        road = building_sprites[0]      # index = 0
+        v.place_building(Road, 0, 0)    # index = 1
+        v.place_building(Road, 0, 0)    # index = 2
+        self.assertEqual(road.index, 2)
+
+    def test_road_rotation(self):
+        """ Ability to rotate the road """
+        self.setup()
+        v.place_building(Road, 0, 0)
+        # Each rotation is 90 degrees at [0..360]
+        road = building_sprites[0]      # rotation = 0
+        v.rotate_road(road)             # rotation = 90
+        v.rotate_road(road)             # rotation = 180
+        self.assertEqual(road.rotation, 180)
+
     
     def test_capacity(self):
         """ General capacity check """
