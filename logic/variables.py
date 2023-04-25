@@ -33,27 +33,27 @@ class Variables:
 
     def place_building(self, building, x, y):
         """ Place a building on the map """
-        roadFound = False
         b = building(x=x, y=y)
+        if not b.place():
+            return False
         self.money -= b.getCost()
         obj = {"x": x, "y": y, "type": building.__name__}
         if building.__name__ == "Road":
-            obj["index"] = b.index
-            obj["rotation"] = b.rotation
-            for item in self.items:
-                if item["x"] == x and item["y"] == y and item["type"] == "Road":
-                    roadFound = True
-                    item["index"] += 1 
-                    item["index"] %= 4
-                    break
-        if not roadFound:
-            self.items.append(obj)
+            obj["index"] = b.index; obj["rotation"] = b.rotation
+        self.items.append(obj)
         
     def rotate_road(self, b):
         b.rotate()
         for item in self.items:
             if item["x"] == b.x and item["y"] == b.y and item["type"] == "Road":
                 item["rotation"] = b.rotation
+                break
+
+    def change_road(self, b):
+        b.change_type()
+        for item in self.items:
+            if item["x"] == b.x and item["y"] == b.y and item["type"] == "Road":
+                item["index"] = b.index
                 break
 
     def remove_building(self, x, y):   
