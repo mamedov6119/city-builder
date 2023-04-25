@@ -1,3 +1,4 @@
+from logic.variables import v;
 from gameconfig import *;
 import arcade;
 
@@ -10,13 +11,20 @@ class Building(arcade.Sprite):
         self.dim = dim
         self.x = x
         self.y = y
-        if (x != -1 and y != -1):
-            self.place(x,y)
-            self.append()
 
-    def place(self,x,y):
+    def place(self,x=None,y=None):
+        if x is None: x = self.x
+        if y is None: y = self.y
         self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
         self.center_y = ((y+1)*BLOCK_SIZE - (self.dim)*BLOCK_SIZE/2)
+        a = arcade.check_for_collision_with_list(self, building_sprites)
+        if len(a) > 0:
+            if self.__class__.__name__ == "Road" and a[0].__class__.__name__ == "Road":
+                v.change_road(a[0])
+            self.kill()
+            return False
+        self.append()
+        return True
 
     def append(self):
         building_sprites.append(self)
@@ -82,13 +90,9 @@ class Road(Building):
         self.index = index % len(self.images)
         self.texture = arcade.load_texture("./images/" + self.images[self.index])
 
-        # check if there is a collision with another road
-        a = arcade.check_for_collision_with_list(self, building_sprites)
-        if len(a) > 0 and a[0].__class__.__name__ == "Road":
-            a[0].index = (a[0].index + 1) % len(a[0].images)
-            a[0].texture = arcade.load_texture("./images/" + a[0].images[a[0].index])
-            self.kill()
-            return
+    def change_type(self):
+        self.index = (self.index + 1) % len(self.images)
+        self.texture = arcade.load_texture("./images/" + self.images[self.index])
 
     def rotate(self):
         deg = 90
