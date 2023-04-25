@@ -1,5 +1,6 @@
 import json, arcade
 from gameconfig import *
+from classes.Disaster import *
 
 class Variables:
     time = 0
@@ -70,6 +71,9 @@ class Variables:
     def change_speed(self, speed):
         """ Change the speed of the game """
         self.speed = speed
+
+    def summon_disaster(self):
+        Meteor()
 
 # --------------------------------------------------
 v = Variables()
