@@ -8,5 +8,4 @@ class Game:
 
     def __init__(self):
         # Setup & launch
-        self.window.setup()
         arcade.run()
