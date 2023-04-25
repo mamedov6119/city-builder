@@ -39,6 +39,7 @@ class Variables:
         obj = {"x": x, "y": y, "type": building.__name__}
         if building.__name__ == "Road":
             obj["index"] = b.index
+            obj["rotation"] = b.rotation
             for item in self.items:
                 if item["x"] == x and item["y"] == y and item["type"] == "Road":
                     roadFound = True
@@ -47,6 +48,13 @@ class Variables:
                     break
         if not roadFound:
             self.items.append(obj)
+        
+    def rotate_road(self, b):
+        b.rotate()
+        for item in self.items:
+            if item["x"] == b.x and item["y"] == b.y and item["type"] == "Road":
+                item["rotation"] = b.rotation
+                break
 
     def remove_building(self, x, y):   
         """ Remove a building from the map """
