@@ -3,6 +3,34 @@ from gameconfig import *
 from classes.Building import *
 from logic.variables import v, Variables
 
+class Disaster(unittest.TestCase):
+    def setup(self):
+        """ Setup a new game """
+        v.reset()
+        humans_sprites.clear()
+        building_sprites.clear()
+    
+    def test_disaster(self):
+        """ Test disaster """
+        self.setup()
+        # No errors expected
+        v.summon_disaster() 
+        m = humans_sprites[0]
+        self.assertEqual(m.__class__.__name__, "Meteor")
+
+    def test_disaster_methods(self):
+        """ Test disaster methods """
+        pos = BLOCK_SIZE*3
+        self.setup()
+        v.place_building(PowerPlant, 0, 3)
+        v.summon_disaster()
+        m = humans_sprites[0]
+        self.assertEqual(m.__class__.__name__, "Meteor")
+        m.assign_target(x=pos, y=pos)
+        for _ in range(0, 2 * 50 * 10):
+            m.update()
+        self.assertEqual(len(humans_sprites), 0)
+
 class Buildings(unittest.TestCase):
     def setup(self):
         """ Setup a new game """
@@ -41,7 +69,6 @@ class Buildings(unittest.TestCase):
         v.rotate_road(road)             # rotation = 180
         self.assertEqual(road.rotation, 180)
 
-    
     def test_capacity(self):
         """ General capacity check """
         self.setup()

@@ -184,7 +184,9 @@ class GameView(arcade.View):
 
         # Side-menu (bottom)
         self.hb_box = arcade.gui.UIBoxLayout(vertical=True)
-        self.hb_box.add(arcade.gui.UIFlatButton(text='disaster', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4, style={"font_color": arcade.color.RED, "border_color": arcade.color.RED, "bg_color": arcade.color.TEA_ROSE}).with_space_around(right=2,top=2,bottom=2,left=2))
+        dis_btn = arcade.gui.UIFlatButton(text='disaster', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4, style={"font_color": arcade.color.RED, "border_color": arcade.color.RED, "bg_color": arcade.color.TEA_ROSE})
+        dis_btn.on_click = lambda e: v.summon_disaster()
+        self.hb_box.add(dis_btn.with_space_around(right=2,top=2,bottom=2,left=2))
         save_btn = arcade.gui.UIFlatButton(text='SAVE', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4)
         save_btn.on_click = lambda e: self.save()
         self.hb_box.add(save_btn.with_space_around(right=2,top=2,bottom=2,left=2))
@@ -205,8 +207,8 @@ class GameView(arcade.View):
         self.menu_manager.draw()
         self.sidetop_manager.draw()
         self.sidebtm_manager.draw()
-        humans_sprites.draw()
         building_sprites.draw()
+        humans_sprites.draw()
 
     def on_update(self, delta_time):
         """
@@ -238,7 +240,7 @@ class GameView(arcade.View):
     def on_mouse_press(self, x, y, button, key_modifiers):
         """ Called when the user presses a mouse button. """
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
-        # print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
+        print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
         try:
             if (self.rotate_sprite.on and 0 <= i and 0 <= j <= 14):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]

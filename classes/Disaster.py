@@ -11,9 +11,9 @@ class Meteor(arcade.Sprite):
         humans_sprites.append(self)
         self.assign_target()
 
-    def assign_target(self):
-        self.target_x = random.randint(BLOCK_SIZE*3, SCREEN_WIDTH)
-        self.target_y = random.randint(0, SCREEN_HEIGHT - BLOCK_SIZE)
+    def assign_target(self, x=None, y=None):
+        self.target_x = random.randint(BLOCK_SIZE*3, SCREEN_WIDTH) if x is None else x
+        self.target_y = random.randint(0, SCREEN_HEIGHT - BLOCK_SIZE) if y is None else y
         self.angle = math.degrees(math.atan2(self.target_y - self.center_y, self.target_x - self.center_x))
 
     def explode(self):
