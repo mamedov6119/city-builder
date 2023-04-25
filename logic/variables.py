@@ -63,6 +63,7 @@ class Variables:
         obj = {"x": b.x, "y": b.y, "type": b.__class__.__name__}
         if b.__class__.__name__ == "Road":
             obj["index"] = b.index
+            obj["rotation"] = b.rotation
         self.items.remove(obj)
         b.kill()
 
