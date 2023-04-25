@@ -11,6 +11,7 @@ class Buildings(unittest.TestCase):
         building_sprites.clear()
 
     def test_road(self):
+        """ Placement of a road """
         self.setup()
         road = Road(0,0)
         self.assertEqual(road.index, 0)
@@ -19,6 +20,7 @@ class Buildings(unittest.TestCase):
         self.assertEqual(road.getMaintenance(), 0)
     
     def test_road_types(self):
+        """ Ability to change the road type """
         self.setup()
         road = Road(0,0)
         Road(0,0) # Place another (same index) to change the type
@@ -26,17 +28,20 @@ class Buildings(unittest.TestCase):
         self.assertEqual(road.index, 1)
     
     def test_capacity(self):
+        """ General capacity check """
         self.setup()
         self.assertEqual(PowerPlant(0,0).getCapacity(), 30)
         self.assertEqual(FireDepartment(2,2).getCapacity(), 20)
         self.assertEqual(PoliceDepartment(4,4).getCapacity(), 20)
 
     def test_safety_radius(self):
+        """ General radius check """
         self.setup()
         self.assertEqual(FireDepartment(0,0).getSafetyRadius(), 1)
         self.assertEqual(PoliceDepartment(2,2).getSafetyRadius(), 1)
 
     def test_other_buildings(self):
+        """ Variables of other buildings """
         self.setup()
         h = House()
         self.assertEqual(h.x, -1)
@@ -57,18 +62,18 @@ class Logic(unittest.TestCase):
         self.buildings = [PowerPlant, FireDepartment, PoliceDepartment, Stadium, Road]
 
     def test_building_empty(self):
-        """" Created list is empty """
+        """ Created list is empty """
         self.setup()
         self.assertEqual(len(building_sprites), 0)
 
     def test_building_place_one(self):
-        """" Inserted building is in the list """
+        """ Inserted building is in the list """
         self.setup()
         v.place_building(PowerPlant, 0, 0)
         self.assertEqual(len(building_sprites), 1)
 
     def test_building_place_all(self):
-        """" Inserted buildings are in the list """
+        """ Inserted buildings are in the list """
         self.setup()
         pos = 0
         for b in self.buildings:
@@ -77,7 +82,7 @@ class Logic(unittest.TestCase):
         self.assertEqual(len(building_sprites), len(self.buildings))
         
     def test_building_remove_one(self):
-        """" Removed building is not in the list """
+        """ Removed building is not in the list """
         self.setup()
         v.place_building(PowerPlant, 0, 0)
         self.assertEqual(len(building_sprites), 1)
@@ -85,7 +90,7 @@ class Logic(unittest.TestCase):
         self.assertEqual(len(building_sprites), 0)
     
     def test_building_remove_multiple(self):
-        """" Removed buildings are not in the list """
+        """ Removed buildings are not in the list """
         self.setup()
         v.place_building(PowerPlant, 0, 0)
         v.place_building(FireDepartment, 2, 2)
