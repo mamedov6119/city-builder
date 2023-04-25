@@ -1,3 +1,4 @@
+from logic.variables import v;
 from gameconfig import *;
 import arcade;
 
@@ -10,13 +11,20 @@ class Building(arcade.Sprite):
         self.dim = dim
         self.x = x
         self.y = y
-        if (x != -1 and y != -1):
-            self.place(x,y)
-            self.append()
 
-    def place(self,x,y):
+    def place(self,x=None,y=None):
+        if x is None: x = self.x
+        if y is None: y = self.y
         self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
         self.center_y = ((y+1)*BLOCK_SIZE - (self.dim)*BLOCK_SIZE/2)
+        a = arcade.check_for_collision_with_list(self, building_sprites)
+        if len(a) > 0:
+            if self.__class__.__name__ == "Road" and a[0].__class__.__name__ == "Road":
+                v.change_road(a[0])
+            self.kill()
+            return False
+        self.append()
+        return True
 
     def append(self):
         building_sprites.append(self)
@@ -75,16 +83,18 @@ class WorkPlace(Building):
 class Road(Building):
     images = ["Road.png", "RoadL.png", "CrossRoad.png"]
 
-    def __init__(self, x=-1, y=-1, index=0):
+    def __init__(self, x=-1, y=-1, index=0, rotation=0):
         super().__init__("Road.png", dim=1, x=x, y=y, cost=0)
-        self.index = index
-        # check if there is a collision with another road
-        a = arcade.check_for_collision_with_list(self, building_sprites)
-        if len(a) > 0 and a[0].__class__.__name__ == "Road":
-            a[0].index = (a[0].index + 1) % len(a[0].images)
-            a[0].texture = arcade.load_texture("./images/" + a[0].images[a[0].index])
-            self.kill()
-            return
+        self.rotation = rotation
+        self.turn_left(self.rotation)
+        self.index = index % len(self.images)
+        self.texture = arcade.load_texture("./images/" + self.images[self.index])
+
+    def change_type(self):
+        self.index = (self.index + 1) % len(self.images)
+        self.texture = arcade.load_texture("./images/" + self.images[self.index])
 
     def rotate(self):
-        self.turn_left(90)
+        deg = 90
+        self.turn_left(deg)
+        self.rotation = (self.rotation + deg) % 360

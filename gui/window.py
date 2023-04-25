@@ -103,7 +103,12 @@ class GameView(arcade.View):
     def load(self, filename="save.json"):
         v.load(filename)
         for item in v.items:
-            eval(item["type"])(item["x"],item["y"])
+            b = None
+            if item["type"] == "Road":
+                b = eval(item["type"])(item["x"],item["y"],item["index"],item["rotation"])
+            else:
+                b = eval(item["type"])(item["x"],item["y"])
+            b.place()
 
     def save(self, filename="save.json"):
         v.save(filename)
@@ -237,7 +242,7 @@ class GameView(arcade.View):
         try:
             if (self.rotate_sprite.on and 0 <= i and 0 <= j <= 14):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
-                if c.__class__.__name__ == "Road": c.rotate()
+                if c.__class__.__name__ == "Road": v.rotate_road(c)
 
             if (0 <= i and 0 <= j <= 14 and self.selected != -1):
                 if self.selected != 'Remove':
