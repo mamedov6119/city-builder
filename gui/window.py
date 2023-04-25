@@ -65,7 +65,9 @@ class Window(arcade.Window):
     
         # Side-menu (bottom)
         self.hb_box = arcade.gui.UIBoxLayout(vertical=True)
-        self.hb_box.add(arcade.gui.UIFlatButton(text='disaster', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4, style={"font_color": arcade.color.RED, "border_color": arcade.color.RED, "bg_color": arcade.color.TEA_ROSE}).with_space_around(right=2,top=2,bottom=2,left=2))
+        dis_btn = arcade.gui.UIFlatButton(text='disaster', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4, style={"font_color": arcade.color.RED, "border_color": arcade.color.RED, "bg_color": arcade.color.TEA_ROSE})
+        dis_btn.on_click = lambda e: v.summon_disaster()
+        self.hb_box.add(dis_btn.with_space_around(right=2,top=2,bottom=2,left=2))
         save_btn = arcade.gui.UIFlatButton(text='SAVE', width=(BLOCK_SIZE*3)-4, height=BLOCK_SIZE-4)
         save_btn.on_click = lambda e: self.save()
         self.hb_box.add(save_btn.with_space_around(right=2,top=2,bottom=2,left=2))
