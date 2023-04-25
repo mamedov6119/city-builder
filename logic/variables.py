@@ -35,7 +35,18 @@ class Variables:
         """ Place a building on the map """
         b = building(x=x, y=y)
         self.money -= b.getCost()
-        self.items.append({"x": x, "y": y, "type": building.__name__})
+        obj = {"x": x, "y": y, "type": building.__name__}
+        if building.__name__ == "Road":
+            obj["index"] = b.index
+            roadFound = False
+            for item in self.items:
+                if item["x"] == x and item["y"] == y and item["type"] == "Road":
+                    roadFound = True
+                    item["index"] += 1 
+                    item["index"] %= 4
+                    break
+        if not roadFound:
+            self.items.append(obj)
 
     def remove_building(self, x, y):   
         """ Remove a building from the map """

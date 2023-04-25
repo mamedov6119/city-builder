@@ -77,7 +77,8 @@ class Road(Building):
 
     def __init__(self, x=-1, y=-1, index=0):
         super().__init__("Road.png", dim=1, x=x, y=y, cost=0)
-        self.index = index
+        self.index = index % len(self.images)
+        self.texture = arcade.load_texture("./images/" + self.images[self.index])
         # check if there is a collision with another road
         a = arcade.check_for_collision_with_list(self, building_sprites)
         if len(a) > 0 and a[0].__class__.__name__ == "Road":

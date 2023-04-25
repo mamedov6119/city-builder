@@ -79,7 +79,10 @@ class Window(arcade.Window):
     def load(self, filename="save.json"):
         v.load(filename)
         for item in v.items:
-            eval(item["type"])(item["x"],item["y"])
+            if item["type"] == "Road":
+                eval(item["type"])(item["x"],item["y"],item["index"])
+            else:
+                eval(item["type"])(item["x"],item["y"])
 
     def save(self, filename="save.json"):
         v.save(filename)
