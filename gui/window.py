@@ -59,12 +59,17 @@ class MenuView(arcade.View):
         if fileselector:
             self.window.game_view = GameView(fileselector)
             self.window.show_view(self.window.game_view) 
+            self.menu_manager.disable()
+
+    def launch_game(self):
+        self.window.show_view(self.window.game_view)
+        self.menu_manager.disable()
 
     def setup(self):
         self.box = arcade.gui.UIBoxLayout(vertical=True)
 
         play_btn = arcade.gui.UIFlatButton(text="Play", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2, style={"bg_color": arcade.color.APPLE_GREEN, "font_color": arcade.color.WHITE})
-        play_btn.on_click = lambda _: self.window.show_view(self.window.game_view)
+        play_btn.on_click = lambda _: self.launch_game()
         self.box.add(play_btn.with_space_around(top=10))
 
         load_btn = arcade.gui.UIFlatButton(text="Load", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2)
@@ -121,6 +126,7 @@ class GameView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
+        arcade.set_viewport(0, self.window.width, 0, self.window.height)
 
     def load(self):
         v.load(self.filename)
