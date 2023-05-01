@@ -7,6 +7,8 @@ class Variables:
     speed = 1
     items = []
     money = 1000
+    population = 100
+    satisfaction = 100
 
     def reset(self):
         self.time = 0
@@ -73,7 +75,10 @@ class Variables:
         self.speed = speed
 
     def summon_disaster(self):
+        """ Summon a disaster """
         Meteor()
+        if self.satisfaction > 0:
+            self.satisfaction -= (self.population * 0.01) * 0.01
 
 # --------------------------------------------------
 v = Variables()

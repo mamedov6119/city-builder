@@ -162,11 +162,11 @@ class GameView(arcade.View):
         # Money 
         arcade.draw_text(f"Funds: ${v.money:,}", 10, SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier")
 
-        # Time (right-aligned)
-        # arcade.draw_text(self.show_date(), (SCREEN_WIDTH - 10) - BLOCK_SIZE*4, SCREEN_HEIGHT - 20, arcade.color.APRICOT, 14, font_name="Courier", anchor_x="right")
-        
         # Time (center-aligned)
         arcade.draw_text(self.show_date(), SCREEN_WIDTH/2, SCREEN_HEIGHT - 20, arcade.color.APRICOT, 14, font_name="Courier", anchor_x="center")
+
+        # Satisfaction 
+        arcade.draw_text(f"{round(v.satisfaction,2)}%", SCREEN_WIDTH - (BLOCK_SIZE*5), SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier", anchor_x="right")
 
     def draw_grid(self):
         """ Draw the grid """
