@@ -143,9 +143,11 @@ class GameView(arcade.View):
 
     def set_select(self, e):
         self.selected = e.source.text if self.selected != e.source.text else -1
-        if self.selected != -1 and self.selected != "Remove":
+        if self.selected != -1 and self.selected != "Remove" and self.selected in [i["text"] for i in self.sidebtns]:
             dim = self.sidebtns[[i["text"] for i in self.sidebtns].index(self.selected)]["class"].getDim()
             self.hover_sprite.set_size(dim)
+        elif self.selected != -1 and self.selected in [i["text"] for i in self.sidezonebtns]: 
+            self.hover_sprite.set_size(1)
         else: self.hover_sprite.set_size(0)
         self.draw_sidetop()
 
@@ -242,9 +244,10 @@ class GameView(arcade.View):
         self.menu_manager.draw()
         self.sidetop_manager.draw()
         self.sidebtm_manager.draw()
+        zone_sprites.draw()
         building_sprites.draw()
         humans_sprites.draw()
-        zone_sprites.draw()
+        
 
     def on_update(self, delta_time):
         """
@@ -265,7 +268,7 @@ class GameView(arcade.View):
         """ Called whenever the mouse moves. """
         if self.selected != -1:
             i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
-            if (0 <= i and 0 <= j <= 14):
+            if (0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2):
                 self.hover_sprite.update_pos(i,j)
         
     def find_sprite(self, x, y):
@@ -280,18 +283,22 @@ class GameView(arcade.View):
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
         print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
         try:
-            if (self.rotate_sprite.on and 0 <= i and 0 <= j <= 14):
+            if (self.rotate_sprite.on and 0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
                 if c.__class__.__name__ == "Road": v.rotate_road(c)
 
-            if (0 <= i and 0 <= j <= 14 and self.selected != -1):
-                if self.selected != 'Remove':
+            if (0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2 and self.selected != -1):
+                if self.selected != 'Remove' and self.selected in [i["text"] for i in self.sidebtns]:
                     target = None
                     for item in self.sidebtns:
                         if item['text'] == self.selected:
                             target = item['class'].__class__
                     v.place_building(building=target, x=i, y=j)
+                elif self.selected != 'Remove' and self.selected in [i["text"] for i in self.sidezonebtns]:
+                    for item in self.sidezonebtns:
+                        if item['text'] == self.selected:
+                            target = item['class'].__class__
+                    v.place_zone(zone=target, x=i, y=j)
                 else: v.remove_building(i, j)
         except Exception as e:
             print(e)
-    

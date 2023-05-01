@@ -6,6 +6,7 @@ class Variables:
     time = 0
     speed = 1
     items = []
+    zones = []
     money = 1000
     population = 100
     satisfaction = 100
@@ -14,6 +15,7 @@ class Variables:
         self.time = 0
         self.speed = 1
         self.items = []
+        self.zones = []
         self.money = 1000
 
     def load(self, filename):
@@ -61,14 +63,16 @@ class Variables:
 
     def remove_building(self, x, y):   
         """ Remove a building from the map """
-        b = arcade.get_sprites_at_point([(x+4)*BLOCK_SIZE, (y+1)*BLOCK_SIZE], building_sprites)[0]
-        self.money += b.getCost()
-        obj = {"x": b.x, "y": b.y, "type": b.__class__.__name__}
-        if b.__class__.__name__ == "Road":
-            obj["index"] = b.index
-            obj["rotation"] = b.rotation
-        self.items.remove(obj)
-        b.kill()
+        try:
+            b = arcade.get_sprites_at_point([(x+4)*BLOCK_SIZE, (y+1)*BLOCK_SIZE], building_sprites)[0]
+            self.money += b.getCost()
+            obj = {"x": b.x, "y": b.y, "type": b.__class__.__name__}
+            if b.__class__.__name__ == "Road":
+                obj["index"] = b.index
+                obj["rotation"] = b.rotation
+            self.items.remove(obj)
+            b.kill()
+        except: return False
 
     def change_speed(self, speed):
         """ Change the speed of the game """
@@ -85,6 +89,14 @@ class Variables:
         if self.time % 365 == 0: 
             for i in range(len(self.items)):
                 self.money -= building_sprites[i].getMaintenance()
+
+    def place_zone(self, zone, x, y):
+        """ Place a zone on the map """
+        z = zone(x=x, y=y)
+        if not z.place():
+            return False
+        self.money -= z.getCost()
+        self.zones.append({"x": x, "y": y, "type": zone.__name__})
 
 # --------------------------------------------------
 v = Variables()

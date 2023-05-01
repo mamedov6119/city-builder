@@ -18,13 +18,28 @@ class Building(arcade.Sprite):
         self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
         self.center_y = ((y+1)*BLOCK_SIZE - (self.dim)*BLOCK_SIZE/2)
         a = arcade.check_for_collision_with_list(self, building_sprites)
+        b = arcade.check_for_collision_with_list(self, zone_sprites)
         if len(a) > 0:
             if self.__class__.__name__ == "Road" and a[0].__class__.__name__ == "Road":
                 v.change_road(a[0])
             self.kill()
             return False
-        self.append()
-        return True
+        if self.__class__.__name__ == "Road":
+                self.append()
+                return True
+        if len(b) > 0:
+            return self.check_zone_place(["PowerPlant"], "Industrial", b) or self.check_zone_place(["FireDepartment", "PoliceDepartment", "Stadium"], "Service", b)
+            
+            
+    
+    def check_zone_place(self, buildings, zone, b):
+        if self.__class__.__name__ in buildings: 
+                for z in range(self.dim**2):
+                    if b[z].__class__.__name__ != zone:
+                        self.kill()
+                        return False
+                self.append()
+                return True
 
     def append(self):
         building_sprites.append(self)
@@ -84,7 +99,7 @@ class Road(Building):
     images = ["Road.png", "RoadL.png", "CrossRoad.png"]
 
     def __init__(self, x=-1, y=-1, index=0, rotation=0):
-        super().__init__("Road.png", dim=1, x=x, y=y, cost=0)
+        super().__init__("Road.png", dim=1, maintenance=100, x=x, y=y, cost=100)
         self.rotation = rotation
         self.turn_left(self.rotation)
         self.index = index % len(self.images)

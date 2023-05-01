@@ -25,7 +25,10 @@ class Zone(arcade.Sprite):
         return True
 
     def append(self):
-        building_sprites.append(self)
+        zone_sprites.append(self)
+    
+    def getCost(self):
+        return self.cost
 
 class Residential (Zone):
     def __init__(self, x=-1, y=-1):
