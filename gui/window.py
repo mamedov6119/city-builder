@@ -1,4 +1,5 @@
 from gameconfig import *;
+from classes.Zone import *;
 from classes.Human import *;
 from classes.Building import *;
 
@@ -87,6 +88,12 @@ class GameView(arcade.View):
         {"text": "Remove", "color": arcade.color.RED, "class": None}
     ]
 
+    sidezonebtns = [
+        {"text": "Residential", "class": Residential()},
+        {"text": "Service", "class": Service()},
+        {"text": "Industrial", "class": Industrial()}
+    ]
+
     """ Class which renders the field of the game. """
     def __init__(self, filename):
         super().__init__()
@@ -132,6 +139,13 @@ class GameView(arcade.View):
             btn.on_click = lambda e: self.set_select(e)
             self.ht_box.add(btn.with_space_around(right=1,top=1,bottom=1,left=1))
         self.sidetop_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="top", child=self.ht_box, align_x=BLOCK_SIZE//2, align_y=-BLOCK_SIZE))
+
+        self.ht2_box = arcade.gui.UIBoxLayout(vertical=True)
+        for i in self.sidezonebtns:
+            btn = arcade.gui.UIFlatButton(text=i["text"], width=(BLOCK_SIZE*2)-2, height=BLOCK_SIZE-2, style={"font_size": 8, "bg_color": arcade.color.DARK_PUCE, "border_color": arcade.color.WHITE if self.selected == i["text"] else None})
+            btn.on_click = lambda e: self.set_select(e)
+            self.ht2_box.add(btn.with_space_around(right=1,top=1,bottom=1,left=1))
+        self.sidetop_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="top", child=self.ht2_box, align_x=BLOCK_SIZE//2, align_y=-BLOCK_SIZE*(len(self.sidebtns)+3)))
 
     def draw_topbar(self):
         self.v_box = arcade.gui.UIBoxLayout(vertical=False)
@@ -209,6 +223,7 @@ class GameView(arcade.View):
         self.sidebtm_manager.draw()
         building_sprites.draw()
         humans_sprites.draw()
+        zone_sprites.draw()
 
     def on_update(self, delta_time):
         """
