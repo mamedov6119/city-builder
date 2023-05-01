@@ -232,6 +232,8 @@ class GameView(arcade.View):
         need it.
         """
         humans_sprites.update()
+        v.time += (delta_time/20) * v.speed
+        v.maintenance_charge()
 
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """

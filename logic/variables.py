@@ -80,5 +80,11 @@ class Variables:
         if self.satisfaction > 0:
             self.satisfaction -= (self.population * 0.01) * 0.01
 
+    def maintenance_charge(self):
+        """ Charge the maintenance of the buildings """
+        if self.time % 365 == 0: 
+            for i in range(len(self.items)):
+                self.money -= building_sprites[i].getMaintenance()
+
 # --------------------------------------------------
 v = Variables()

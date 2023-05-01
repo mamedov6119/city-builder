@@ -1,4 +1,4 @@
-import unittest, json, os
+import unittest, json, os, datetime
 from gameconfig import *
 from classes.Building import *
 from logic.variables import v, Variables
@@ -183,6 +183,27 @@ class Logic(unittest.TestCase):
         self.setup()
         v.change_speed(2)
         self.assertEqual(v.speed, 2)
+
+    def test_maintenance_charge(self):
+        self.setup()
+        m = v.money
+        datetime.date(2000, 1, 1)
+        v.place_building(PowerPlant, 0, 0)
+        datetime.date(2001, 1, 1)
+        v.maintenance_charge()
+        self.assertEqual(v.money, m - PowerPlant().getMaintenance() - PowerPlant().getCost())
+
+    def test_maintenance_charge_multiple(self):
+        self.setup()
+        m = v.money
+        datetime.date(2000, 1, 1)
+        v.place_building(PowerPlant, 0, 0)
+        v.place_building(Road, 2, 2)
+        v.place_building(FireDepartment, 4, 4)
+        datetime.date(2001, 1, 1)
+        v.maintenance_charge()
+        self.assertEqual(v.money, m - PowerPlant().getMaintenance() - PowerPlant().getCost() - Road().getMaintenance() - FireDepartment().getMaintenance() - FireDepartment().getCost() - Road().getCost())
+        
 
 class Saves(unittest.TestCase):
     def setup(self):
