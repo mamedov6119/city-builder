@@ -5,6 +5,10 @@ from classes.Building import *;
 
 from logic.variables import v;
 import arcade, arcade.gui, datetime, json;
+from tkinter import filedialog as fd
+
+
+fileselector = None
 
 class Hover(arcade.Sprite):
     def __init__(self, size=0, color=arcade.color.RED):
@@ -49,6 +53,13 @@ class MenuView(arcade.View):
         self.menu_manager = arcade.gui.UIManager(auto_enable=True)
         self.setup()
 
+    def setfile(self):
+        global fileselector
+        fileselector = fd.askopenfilename()
+        if fileselector:
+            self.window.game_view = GameView(fileselector)
+            self.window.show_view(self.window.game_view) 
+
     def setup(self):
         self.box = arcade.gui.UIBoxLayout(vertical=True)
 
@@ -57,7 +68,7 @@ class MenuView(arcade.View):
         self.box.add(play_btn.with_space_around(top=10))
 
         load_btn = arcade.gui.UIFlatButton(text="Load", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2)
-        load_btn.on_click = lambda _: self.window.show_view(self.window.game_view)
+        load_btn.on_click = lambda _: self.setfile()
         self.box.add(load_btn.with_space_around(top=10))
 
         exit_btn = arcade.gui.UIFlatButton(text="Exit", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2, style={"bg_color": arcade.color.ALABAMA_CRIMSON, "font_color": arcade.color.WHITE})
@@ -95,9 +106,13 @@ class GameView(arcade.View):
     ]
 
     """ Class which renders the field of the game. """
-    def __init__(self, filename):
+    def __init__(self, filename='save.json'):
         super().__init__()
-        self.load(filename)
+        self.filename = filename
+        building_sprites.clear()
+        humans_sprites.clear()
+        zone_sprites.clear()
+        self.load()
         arcade.set_background_color(arcade.color.AMAZON)
         self.menu_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidetop_manager = arcade.gui.UIManager(auto_enable=True)
@@ -107,8 +122,8 @@ class GameView(arcade.View):
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
 
-    def load(self, filename="save.json"):
-        v.load(filename)
+    def load(self):
+        v.load(self.filename)
         for item in v.items:
             b = None
             if item["type"] == "Road":
@@ -117,8 +132,8 @@ class GameView(arcade.View):
                 b = eval(item["type"])(item["x"],item["y"])
             b.place()
 
-    def save(self, filename="save.json"):
-        v.save(filename)
+    def save(self):
+        v.save(self.filename)
 
     def set_select(self, e):
         self.selected = e.source.text if self.selected != e.source.text else -1

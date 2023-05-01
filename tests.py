@@ -185,6 +185,7 @@ class Logic(unittest.TestCase):
         self.assertEqual(v.speed, 2)
 
     def test_maintenance_charge(self):
+        """ Maintenance charge """
         self.setup()
         m = v.money
         datetime.date(2000, 1, 1)
@@ -194,6 +195,7 @@ class Logic(unittest.TestCase):
         self.assertEqual(v.money, m - PowerPlant().getMaintenance() - PowerPlant().getCost())
 
     def test_maintenance_charge_multiple(self):
+        """ Maintenance charge for multiple buildings """
         self.setup()
         m = v.money
         datetime.date(2000, 1, 1)
