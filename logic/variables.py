@@ -27,13 +27,14 @@ class Variables:
                 self.speed = data["speed"] if "speed" in data else self.speed
                 self.money = data["money"] if "money" in data else self.money
                 self.items = data["items"] if "items" in data else self.items
+                self.zones = data["zones"] if "zones" in data else self.zones
         except: self.reset()
 
     def save(self, filename):
         """ Save the game to a file """
         print("Saving...", end=" ")
         with open(filename, "w") as f:
-            json.dump({"time": v.time, "speed": v.speed, "money": v.money, "items": v.items}, f)
+            json.dump({"time": v.time, "speed": v.speed, "money": v.money, "items": v.items, "zones" : v.zones }, f)
         print("Save complete!")
 
     def place_building(self, building, x, y):

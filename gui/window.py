@@ -130,6 +130,9 @@ class GameView(arcade.View):
 
     def load(self):
         v.load(self.filename)
+        for zone in v.zones:
+            z = eval(zone["type"])(zone["x"], zone["y"])
+            z.place()
         for item in v.items:
             b = None
             if item["type"] == "Road":
