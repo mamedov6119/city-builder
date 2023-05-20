@@ -46,14 +46,44 @@ class Variables:
         obj = {"x": x, "y": y, "type": building.__name__}
         if building.__name__ == "Road":
             obj["index"] = b.index; obj["rotation"] = b.rotation
+            self.check_road(x, y, self.into_matrix())
         self.items.append(obj)
-        
-    def rotate_road(self, b):
-        b.rotate()
-        for item in self.items:
-            if item["x"] == b.x and item["y"] == b.y and item["type"] == "Road":
-                item["rotation"] = b.rotation
-                break
+
+
+    def into_matrix(self):
+        cells_x = int(SCREEN_HEIGHT / BLOCK_SIZE)
+        cells_y = int(SCREEN_WIDTH / BLOCK_SIZE)
+        matrix = [["-" for x in range(cells_x)] for y in range(cells_y)]
+        for zone in self.zones:
+            matrix[zone["x"]][zone["y"]] = zone["type"][0]
+        for road in self.items:
+            if road["type"] == "Road":
+                matrix[road["x"]][road["y"]] = "O"
+        for row in matrix:
+            for item in row:
+                print(item, end=" ")
+            print()
+        return matrix
+    
+    def check_road(self, x, y, mat, direction=(0,0), visited=[]):
+        # # road check until it reaches a zone
+        # # check if there is a road in the 3 directions (dont check the one it came from)
+        # directions = [(0,1), (1,0), (0,-1), (-1,0)]
+        # if direction != (0,0):
+        #     # remove the opposite direction
+        #     directions.remove((-direction[0], -direction[1]))
+        # for d in directions:
+        #     # if not visited and its road - continue searching
+        #     if (x+d[0], y+d[1]) not in visited and mat[x+d[0]][y+d[1]] == "O":
+        #         visited.append((x+d[0], y+d[1]))
+        #         self.check_road(x+d[0], y+d[1], mat, d, visited)
+        #     # if its a zone - print a message the road is connected
+        #     elif mat[x+d[0]][y+d[1]] != "-" and mat[x+d[0]][y+d[1]] != "O":
+        #         print("Road is connected")
+        #         return True
+        # # if no road is found - print a message the road is not connected
+        # print("Road is not connected")
+        return False
 
     def change_road(self, b):
         b.change_type()

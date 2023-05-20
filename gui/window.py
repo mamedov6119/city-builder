@@ -4,9 +4,8 @@ from classes.Human import *;
 from classes.Building import *;
 
 from logic.variables import v;
-import arcade, arcade.gui, datetime, json;
+import arcade, arcade.gui, datetime;
 from tkinter import filedialog as fd
-
 
 fileselector = None
 
@@ -204,6 +203,10 @@ class GameView(arcade.View):
 
         # Time (center-aligned)
         arcade.draw_text(self.show_date(), SCREEN_WIDTH/2, SCREEN_HEIGHT - 20, arcade.color.APRICOT, 14, font_name="Courier", anchor_x="center")
+
+        # Population
+        # arcade.draw_texture_rectangle(SCREEN_WIDTH - (BLOCK_SIZE*7), SCREEN_HEIGHT - (BLOCK_SIZE/2), BLOCK_SIZE, BLOCK_SIZE, arcade.load_texture("images/Human.png"))
+        arcade.draw_text(f"p:{v.population:,}", SCREEN_WIDTH - (BLOCK_SIZE*10), SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier", anchor_x="right")
 
         # Satisfaction 
         arcade.draw_text(f"{round(v.satisfaction,2)}%", SCREEN_WIDTH - (BLOCK_SIZE*5), SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier", anchor_x="right")
