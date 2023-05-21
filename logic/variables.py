@@ -3,7 +3,7 @@ from gameconfig import *
 from classes.Disaster import *
 
 class Variables:
-    time = 0
+    time = 1
     speed = 1
     items = []
     zones = []
@@ -53,11 +53,6 @@ class Variables:
                     self.place_house(a[0][0], a[0][1])
                 elif self.getZone(a[1][0], a[1][1]) == "Residential" and self.getZone(a[0][0], a[0][1]) != "Residential":
                     self.place_house(a[1][0], a[1][1])
-                    
-                    
-
-                    
-
         self.items.append(obj)
 
     def into_matrix(self):
@@ -140,6 +135,17 @@ class Variables:
             for i in range(len(self.items)):
                 self.money -= building_sprites[i].getMaintenance()
 
+    def populate_buildings(self):
+        """ Populate the buildings """
+        # if a week has passed and the satisfaction is greater than 10, add a person to a random house
+        if self.time % 7 == 0:
+            if self.satisfaction > 10:
+                for item in building_sprites:
+                    if item.p_inside < item.capacity:
+                        item.p_inside += 1
+                        self.population += 1
+                        break
+
     def place_zone(self, zone, x, y):
         """ Place a zone on the map """
         z = zone(x=x, y=y)
@@ -159,13 +165,12 @@ class Variables:
         if len(temp) < 5:
             self.satisfaction = 100
         else: self.satisfaction = sum(temp) / len(temp)
-    
-    
 
     def place_house(self, x, y):
         """ Place a house on the map """
         from classes.Building import House
         h = House(x=x, y=y)
+        h.p_inside = 5
         if not h.place():
             return False
         self.items.append({"x": x, "y": y, "type": "House"})

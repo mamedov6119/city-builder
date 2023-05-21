@@ -7,6 +7,7 @@ class Building(arcade.Sprite):
         super().__init__("./images/" + filename, image_width=BLOCK_SIZE*dim, image_height=BLOCK_SIZE*dim)
         self.maintenance = maintenance
         self.capacity = capacity
+        self.p_inside = 1
         self.cost = cost
         self.dim = dim
         self.x = x
@@ -79,6 +80,7 @@ class House(Building):
     def __init__(self, x=-1, y=-1):
         super().__init__("House.png", capacity=20, x=x, y=y)
         for _ in range(5): self.humans.append(Human(x,y))
+        self.p_inside = len(self.humans)
 
 
 class WorkPlace(Building):

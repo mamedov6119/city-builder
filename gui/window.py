@@ -265,6 +265,9 @@ class GameView(arcade.View):
         v.time += (delta_time/20) * v.speed
         v.maintenance_charge()
         v.update_satisfaction()
+        v.populate_buildings()
+
+
 
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """
@@ -293,7 +296,6 @@ class GameView(arcade.View):
             if (self.rotate_sprite.on and 0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
                 if c.__class__.__name__ == "Road": v.rotate_road(c)
-
             if (0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2 and self.selected != -1):
                 if self.selected != 'Remove' and self.selected in [i["text"] for i in self.sidebtns]:
                     target = None
@@ -307,5 +309,14 @@ class GameView(arcade.View):
                             target = item['class'].__class__
                     v.place_zone(zone=target, x=i, y=j)
                 else: v.remove_building(i, j)
+            elif 0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2 and self.selected == -1:
+                c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
+                print(f"Capacity: {c.capacity}")
+                print(f"p_inside: {c.p_inside}")
+                print(c.__class__.__name__)
         except Exception as e:
             print(e)
+
+    
+
+        
