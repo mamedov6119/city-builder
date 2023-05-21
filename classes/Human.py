@@ -6,12 +6,15 @@ from logic.variables import v;
 from arcade import check_for_collision_with_list;
 
 class Human(arcade.Sprite):
-    def __init__(self):
+    def __init__(self, x=0, y=0):
         super().__init__("./images/Human.png", CHRACTER_SCALING)
         self.circle_center_x = random.randrange(150, 700)
         self.circle_center_y = random.randrange(150, 700)
         self.circle_radius = random.randrange(10, 200)
         self.circle_angle = random.random() * 2 * math.pi
+        self.satisfaction = 100
+        self.center_x = (x+3) * BLOCK_SIZE 
+        self.center_y = y * BLOCK_SIZE
         humans_sprites.append(self)
 
     def update(self):
@@ -21,6 +24,7 @@ class Human(arcade.Sprite):
         self.center_y = self.circle_radius * math.cos(self.circle_angle) \
             + self.circle_center_y
         self.circle_angle += HUMAN_SPEED * v.speed
+        self.satisfaction -= 0.01 * v.speed
         self.check_boundary_collision()
 
     def collides_with_list(self, sprite_list):
@@ -31,3 +35,5 @@ class Human(arcade.Sprite):
         if self.left < 3*BLOCK_SIZE: self.left = 3*BLOCK_SIZE
         if self.top > SCREEN_HEIGHT - BLOCK_SIZE: self.top = SCREEN_HEIGHT - BLOCK_SIZE
         if self.bottom < 0: self.bottom = 0
+    
+    

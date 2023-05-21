@@ -1,6 +1,6 @@
-from logic.variables import v;
 from gameconfig import *;
 import arcade;
+from classes import Human;
 
 class Building(arcade.Sprite):
     def __init__(self, filename, cost=0, maintenance=0, capacity=0, dim=1, x=-1, y=-1):
@@ -13,6 +13,7 @@ class Building(arcade.Sprite):
         self.y = y
 
     def place(self,x=None,y=None):
+        from logic.variables import v
         if x is None: x = self.x
         if y is None: y = self.y
         self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
@@ -74,8 +75,11 @@ class Stadium(Building):
         self.bonus = bonus
 
 class House(Building):
+    humans = []
     def __init__(self, x=-1, y=-1):
-        super().__init__("House.png", capacity=20)
+        super().__init__("House.png", capacity=20, x=x, y=y)
+        for _ in range(5): self.humans.append(Human(x,y))
+
 
 class WorkPlace(Building):
     def __init__(self, x=-1, y=-1):

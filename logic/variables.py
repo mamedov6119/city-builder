@@ -8,7 +8,7 @@ class Variables:
     items = []
     zones = []
     money = 1000
-    population = 100
+    population = 0
     satisfaction = 100
 
     def reset(self):
@@ -48,6 +48,16 @@ class Variables:
             obj["index"] = b.index; obj["rotation"] = b.rotation
             a = self.nearest_zone_by_roads(x, y, self.into_matrix(), [])
             print(a)
+            if a is not False and len(a) == 2:
+                if self.getZone(a[0][0], a[0][1]) == "Residential" and self.getZone(a[1][0], a[1][1]) != "Residential":
+                    self.place_house(a[0][0], a[0][1])
+                elif self.getZone(a[1][0], a[1][1]) == "Residential" and self.getZone(a[0][0], a[0][1]) != "Residential":
+                    self.place_house(a[1][0], a[1][1])
+                    
+                    
+
+                    
+
         self.items.append(obj)
 
     def into_matrix(self):
@@ -86,9 +96,14 @@ class Variables:
                 visited[ny][nx] = True
                 prev_x, prev_y = x, y
         return False
+    
+    def getZone(self, x, y):
+        """ Get a zone from the map """
+        for zone in self.zones:
+            if zone["x"] == x and zone["y"] == y:
+                return zone["type"]
+        return None
 
-
-                
     def change_road(self, b):
         b.change_type()
         for item in self.items:
@@ -133,5 +148,27 @@ class Variables:
         self.money -= z.getCost()
         self.zones.append({"x": x, "y": y, "type": zone.__name__})
 
+    def update_satisfaction(self):
+        """ Update the satisfaction of the zones """
+        temp = []
+        for item in building_sprites:
+            if item.__class__.__name__ == "House":
+                for human in item.humans:
+                    temp.append(human.satisfaction)
+        self.population = len(temp)
+        if len(temp) < 5:
+            self.satisfaction = 100
+        else: self.satisfaction = sum(temp) / len(temp)
+    
+    
+
+    def place_house(self, x, y):
+        """ Place a house on the map """
+        from classes.Building import House
+        h = House(x=x, y=y)
+        if not h.place():
+            return False
+        self.items.append({"x": x, "y": y, "type": "House"})
+                
 # --------------------------------------------------
 v = Variables()

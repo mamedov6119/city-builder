@@ -240,7 +240,7 @@ class GameView(arcade.View):
         humans_sprites.append(self.rotate_sprite)
         
         # Place humans
-        for _ in range(10): Human()
+        # for _ in range(10): Human()
 
     def on_draw(self):
         """ Render the screen. """
@@ -264,6 +264,7 @@ class GameView(arcade.View):
         humans_sprites.update()
         v.time += (delta_time/20) * v.speed
         v.maintenance_charge()
+        v.update_satisfaction()
 
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """
