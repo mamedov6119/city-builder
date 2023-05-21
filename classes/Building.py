@@ -3,7 +3,7 @@ import arcade;
 from classes import Human;
 
 class Building(arcade.Sprite):
-    def __init__(self, filename, cost=0, maintenance=0, capacity=0, dim=1, x=-1, y=-1):
+    def __init__(self, filename, cost=0, maintenance=0, capacity=0, dim=1, x=-1, y=-1, income=0):
         super().__init__("./images/" + filename, image_width=BLOCK_SIZE*dim, image_height=BLOCK_SIZE*dim)
         self.maintenance = maintenance
         self.capacity = capacity
@@ -12,6 +12,9 @@ class Building(arcade.Sprite):
         self.dim = dim
         self.x = x
         self.y = y
+        self.income = income
+        self.powered = False
+        
 
     def place(self,x=None,y=None):
         from logic.variables import v
@@ -43,14 +46,21 @@ class Building(arcade.Sprite):
     
     def getCapacity(self):
         return self.capacity
-
+    
+    def getIncome(self):
+        return self.income
+    
+    def setPower(self, powered):
+        self.powered = powered
+        
 class PowerPlant(Building):
+    prod_capacity = 100
     def __init__(self, x=-1, y=-1):
-        super().__init__("PowerPlant.png", cost=1000, maintenance=200, capacity=30, dim=2, x=x, y=y)
+        super().__init__("PowerPlant.png", cost=1000, maintenance=200, capacity=30, dim=2, x=x, y=y, income=400)
 
 class FireDepartment(Building):
     def __init__(self, x=-1, y=-1, sradius=1, ftruck=1):
-        super().__init__("FireDepartment.png", cost=1200, maintenance=300, capacity=20, dim=2, x=x, y=y)
+        super().__init__("FireDepartment.png", cost=1200, maintenance=300, capacity=20, dim=2, x=x, y=y, income=600)
         self.sradius = sradius
         self.ftruck = ftruck
 
@@ -63,7 +73,7 @@ class FireDepartment(Building):
 
 class PoliceDepartment(Building):
     def __init__(self, x=-1, y=-1, sradius=1):
-        super().__init__("PoliceDepartment.png", cost=1200, maintenance=250, capacity=20, dim=2, x=x, y=y)
+        super().__init__("PoliceDepartment.png", cost=1200, maintenance=250, capacity=20, dim=2, x=x, y=y, income=700)
         self.sradius = sradius
 
     def getSafetyRadius(self):
@@ -71,7 +81,7 @@ class PoliceDepartment(Building):
     
 class Stadium(Building):
     def __init__(self, x=-1, y=-1, sradius=1, bonus=1.5):
-        super().__init__("Stadium.png", cost=1500, maintenance=300, capacity=30, dim=2, x=x, y=y)
+        super().__init__("Stadium.png", cost=1500, maintenance=300, capacity=30, dim=2, x=x, y=y, income=500)
         self.sradius = sradius
         self.bonus = bonus
 
@@ -85,7 +95,7 @@ class House(Building):
 
 class WorkPlace(Building):
     def __init__(self, x=-1, y=-1):
-        super().__init__("WorkPlace.png", capacity=30, dim=1, x=x, y=y)
+        super().__init__("WorkPlace.png", capacity=30, dim=1, x=x, y=y, income=300)
 
 class Road(Building):
     images = ["Road.png", "RoadL.png", "CrossRoad.png"]

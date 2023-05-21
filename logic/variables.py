@@ -54,6 +54,8 @@ class Variables:
                 elif self.getZone(a[1][0], a[1][1]) == "Residential" and self.getZone(a[0][0], a[0][1]) != "Residential":
                     self.place_house(a[1][0], a[1][1])
         self.items.append(obj)
+        self.check_powered()
+        print("Power" + str(b.powered))
 
     def into_matrix(self):
         """ Convert the map into a matrix """
@@ -174,6 +176,31 @@ class Variables:
         if not h.place():
             return False
         self.items.append({"x": x, "y": y, "type": "House"})
-                
+
+    def is_within_reach(self, building, radius=6):
+        """ Check if the building has electricity """
+        for item in self.items:
+            if item["type"] == "PowerPlant":
+                # Calculating Euclidean distance
+                distance = abs(item["x"] - building.x) + abs(item["y"] - building.y)
+                if distance <= radius:
+                    print("Within reach")
+                    return True
+        print("Not within reach")
+        return False
+
+    def collect_income(self):
+            """ Collect income from all buildings. """
+            if self.time % 30 == 0:
+                for building in building_sprites:
+                    if building.powered:
+                        self.money += building.getIncome()
+    
+    def check_powered(self):
+        """ Check if the buildings are powered """
+        for building in building_sprites:
+            if self.is_within_reach(building):
+                building.setPower(True)
+            
 # --------------------------------------------------
 v = Variables()
