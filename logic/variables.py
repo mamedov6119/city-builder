@@ -10,9 +10,9 @@ class Variables:
     money = 1000
     population = 0
     satisfaction = 100
+    donotremove = []
     last_income = -1
     last_maintenance = -1
-    donotremove = []
 
     def reset(self):
         self.time = 0
@@ -35,10 +35,8 @@ class Variables:
 
     def save(self, filename):
         """ Save the game to a file """
-        print("Saving...", end=" ")
         with open(filename, "w") as f:
             json.dump({"time": v.time, "speed": v.speed, "money": v.money, "items": v.items, "zones" : v.zones }, f)
-        print("Save complete!")
 
     def place_building(self, building, x, y):
         """ Place a building on the map """
@@ -49,22 +47,25 @@ class Variables:
         obj = {"x": x, "y": y, "type": building.__name__}
         if building.__name__ == "Road":
             obj["index"] = b.index; obj["rotation"] = b.rotation
-            zonelist = self.nearest_zone_by_roads(x, y, self.into_matrix(), [])
-
-            titles = [ t[2] for t in zonelist ]
-            print(titles)
-
-            if 'R' in titles and ('S' in titles or 'I' in titles):
-                for pos in zonelist:
-                    finder = arcade.Sprite()
-                    finder.center_x = ((pos[0]+3)*BLOCK_SIZE + (1)*BLOCK_SIZE/2)
-                    finder.center_y = ((pos[1]+1)*BLOCK_SIZE - (1)*BLOCK_SIZE/2)
-                    finder.texture = arcade.make_soft_square_texture(BLOCK_SIZE, arcade.color.RED, outer_alpha=255)
-                    target = arcade.check_for_collision_with_list(finder, zone_sprites)
-                    target[0].buildHouse()
+            self.road_logic(x,y)
         self.items.append(obj)
         self.check_powered()
         print("Power" + str(b.powered))
+
+    def road_logic(self, x, y):
+        """ Logic for roads, as checking for nearby zones """
+        zonelist, roadlist = self.nearest_zone_by_roads(x, y, self.into_matrix(), [], [])
+        titles = [ t[2] for t in zonelist ]
+        if 'R' in titles and ('S' in titles or 'I' in titles):
+            for pos in roadlist:
+                self.donotremove.append(pos)
+            for pos in zonelist:
+                finder = arcade.Sprite()
+                finder.center_x = ((pos[0]+3)*BLOCK_SIZE + (1)*BLOCK_SIZE/2)
+                finder.center_y = ((pos[1]+1)*BLOCK_SIZE - (1)*BLOCK_SIZE/2)
+                finder.texture = arcade.make_soft_square_texture(BLOCK_SIZE, arcade.color.RED, outer_alpha=255)
+                target = arcade.check_for_collision_with_list(finder, zone_sprites)
+                target[0].buildHouse()
 
     def into_matrix(self):
         """ Convert the map into a matrix """
@@ -76,7 +77,7 @@ class Variables:
             matrix[zone["y"]][zone["x"]] = zone["type"][0]
         return matrix
     
-    def nearest_zone_by_roads(self, x, y, matrix, found=[]):
+    def nearest_zone_by_roads(self, x, y, matrix, found=[], path=[]):
         """ Find the nearest zone through roads """
         queue = [(x, y)]
         prev_x, prev_y = x, y
@@ -89,7 +90,7 @@ class Variables:
                 if (x, y, matrix[y][x]) not in found:
                     found.append((x, y, matrix[y][x]))
                 matrix[y][x] = '-'
-                return self.nearest_zone_by_roads(prev_x, prev_y, matrix, found)
+                return self.nearest_zone_by_roads(prev_x, prev_y, matrix, found, path)
             for i in range(4):
                 if i == 0:   nx, ny = x+1, y
                 elif i == 1: nx, ny = x-1, y
@@ -100,9 +101,10 @@ class Variables:
                 queue.append((nx, ny))
                 visited[ny][nx] = True
                 prev_x, prev_y = x, y
-        return found
+                if (x, y) not in path: path.append((x, y))
+        return (found, path)
     
-    def getZone(self, x, y):
+    def get_zone(self, x, y):
         """ Get a zone from the map """
         for zone in self.zones:
             if zone["x"] == x and zone["y"] == y:
@@ -110,6 +112,7 @@ class Variables:
         return None
 
     def change_road(self, b):
+        """ Change a road type """
         b.change_type()
         for item in self.items:
             if item["x"] == b.x and item["y"] == b.y and item["type"] == "Road":
@@ -117,6 +120,7 @@ class Variables:
                 break
         
     def rotate_road(self, b):
+        """ Rotate a road """
         b.rotate()
         for item in self.items:
             if item["x"] == b.x and item["y"] == b.y and item["type"] == "Road":
@@ -126,6 +130,8 @@ class Variables:
     def remove_building(self, x, y):   
         """ Remove a building from the map """
         try:
+            if (x, y) in self.donotremove:
+                return False
             b = arcade.get_sprites_at_point([(x+4)*BLOCK_SIZE, (y+1)*BLOCK_SIZE], building_sprites)[0]
             self.money += b.getCost()
             obj = {"x": b.x, "y": b.y, "type": b.__class__.__name__}
@@ -143,8 +149,6 @@ class Variables:
     def summon_disaster(self):
         """ Summon a disaster """
         Meteor()
-        if self.satisfaction > 0:
-            self.satisfaction -= (self.population * 0.01) * 0.01
 
     def maintenance_charge(self):
         """ Charge the maintenance of the buildings """
