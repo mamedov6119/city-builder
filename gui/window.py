@@ -209,7 +209,7 @@ class GameView(arcade.View):
         arcade.draw_text(f"p:{v.population:,}", SCREEN_WIDTH - (BLOCK_SIZE*10), SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier", anchor_x="right")
 
         # Satisfaction 
-        arcade.draw_text(f"{round(v.satisfaction,2)}%", SCREEN_WIDTH - (BLOCK_SIZE*5), SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier", anchor_x="right")
+        arcade.draw_text(f"{round(v.satisfaction)}%", SCREEN_WIDTH - (BLOCK_SIZE*5), SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier", anchor_x="right")
 
     def draw_grid(self):
         """ Draw the grid """

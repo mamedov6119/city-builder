@@ -1,6 +1,6 @@
-import json, arcade, copy, datetime
-from gameconfig import *
+import json, arcade, datetime
 from classes.Disaster import *
+from gameconfig import *
 
 class Variables:
     time = 0
@@ -12,6 +12,7 @@ class Variables:
     satisfaction = 100
     last_income = -1
     last_maintenance = -1
+    donotremove = []
 
     def reset(self):
         self.time = 0
@@ -25,7 +26,7 @@ class Variables:
         try:
             with open(filename, "r") as f:
                 data = json.load(f)
-                self.time = data["time"] if "time" in data else self.time
+                self.time = data["time"]   if "time" in data else self.time
                 self.speed = data["speed"] if "speed" in data else self.speed
                 self.money = data["money"] if "money" in data else self.money
                 self.items = data["items"] if "items" in data else self.items
@@ -48,13 +49,19 @@ class Variables:
         obj = {"x": x, "y": y, "type": building.__name__}
         if building.__name__ == "Road":
             obj["index"] = b.index; obj["rotation"] = b.rotation
-            a = self.nearest_zone_by_roads(x, y, self.into_matrix(), [])
-            print(a)
-            if a is not False and len(a) == 2:
-                if self.getZone(a[0][0], a[0][1]) == "Residential" and self.getZone(a[1][0], a[1][1]) != "Residential":
-                    self.place_house(a[0][0], a[0][1])
-                elif self.getZone(a[1][0], a[1][1]) == "Residential" and self.getZone(a[0][0], a[0][1]) != "Residential":
-                    self.place_house(a[1][0], a[1][1])
+            zonelist = self.nearest_zone_by_roads(x, y, self.into_matrix(), [])
+
+            titles = [ t[2] for t in zonelist ]
+            print(titles)
+
+            if 'R' in titles and ('S' in titles or 'I' in titles):
+                for pos in zonelist:
+                    finder = arcade.Sprite()
+                    finder.center_x = ((pos[0]+3)*BLOCK_SIZE + (1)*BLOCK_SIZE/2)
+                    finder.center_y = ((pos[1]+1)*BLOCK_SIZE - (1)*BLOCK_SIZE/2)
+                    finder.texture = arcade.make_soft_square_texture(BLOCK_SIZE, arcade.color.RED, outer_alpha=255)
+                    target = arcade.check_for_collision_with_list(finder, zone_sprites)
+                    target[0].buildHouse()
         self.items.append(obj)
         self.check_powered()
         print("Power" + str(b.powered))
@@ -79,13 +86,12 @@ class Variables:
             x, y = queue.pop(0)
             if matrix[y][x] in ['R', 'S', 'I']:
                 print("Zone found: " + matrix[y][x] + " x: " + str(x) + " y: " + str(y))
+                if (x, y, matrix[y][x]) not in found:
+                    found.append((x, y, matrix[y][x]))
                 matrix[y][x] = '-'
-                if (x, y) not in found: found.append((x, y))
-                if len(found) == 2:
-                    return found
-                else: return self.nearest_zone_by_roads(prev_x, prev_y, matrix, found)
+                return self.nearest_zone_by_roads(prev_x, prev_y, matrix, found)
             for i in range(4):
-                if i == 0: nx, ny = x+1, y
+                if i == 0:   nx, ny = x+1, y
                 elif i == 1: nx, ny = x-1, y
                 elif i == 2: nx, ny = x, y+1
                 elif i == 3: nx, ny = x, y-1
@@ -94,7 +100,7 @@ class Variables:
                 queue.append((nx, ny))
                 visited[ny][nx] = True
                 prev_x, prev_y = x, y
-        return False
+        return found
     
     def getZone(self, x, y):
         """ Get a zone from the map """
@@ -108,6 +114,13 @@ class Variables:
         for item in self.items:
             if item["x"] == b.x and item["y"] == b.y and item["type"] == "Road":
                 item["index"] = b.index
+                break
+        
+    def rotate_road(self, b):
+        b.rotate()
+        for item in self.items:
+            if item["x"] == b.x and item["y"] == b.y and item["type"] == "Road":
+                item["rotation"] = b.rotation
                 break
 
     def remove_building(self, x, y):   
@@ -173,14 +186,13 @@ class Variables:
             self.satisfaction = 100
         else: self.satisfaction = sum(temp) / len(temp)
 
-    def place_house(self, x, y):
-        """ Place a house on the map """
-        from classes.Building import House
-        h = House(x=x, y=y)
-        h.p_inside = 5
-        if not h.place():
-            return False
-        self.items.append({"x": x, "y": y, "type": "House"})
+    def update_population(self):
+        """ Update the population of the zones """
+        sum = 0
+        for item in building_sprites:
+            if item.__class__.__name__ == "House":
+                sum += len(item.humans)
+        self.population = sum
 
     def is_within_reach(self, building, radius=6):
         """ Check if the building has electricity """
@@ -209,6 +221,7 @@ class Variables:
         for building in building_sprites:
             if self.is_within_reach(building):
                 building.setPower(True)
+
             
 # --------------------------------------------------
 v = Variables()

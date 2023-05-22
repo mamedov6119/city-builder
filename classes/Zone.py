@@ -1,11 +1,13 @@
-from logic.variables import v;
-from gameconfig import *;
 import arcade;
+from gameconfig import *;
+from classes.Building import House, WorkPlace;
 
 class Zone(arcade.Sprite):
+    hasBuilding = False
+
     def __init__(self, cost=0, dim=1, x=-1, y=-1, color=arcade.color.BLACK):
         super().__init__(image_width=BLOCK_SIZE*dim, image_height=BLOCK_SIZE*dim)
-        self.texture = arcade.make_soft_square_texture(BLOCK_SIZE*dim, color)
+        self.texture = arcade.make_soft_square_texture(BLOCK_SIZE*dim, color, 255, 100)
         self.cost = cost
         self.dim = dim
         self.x = x
@@ -29,10 +31,26 @@ class Zone(arcade.Sprite):
     
     def getCost(self):
         return self.cost
+    
+    def buildHouse(self):
+        if self.hasBuilding:
+            return None
+        wp = WorkPlace(x=self.x, y=self.y)
+        wp.place()
+        self.hasBuilding = True
+        return wp
 
 class Residential (Zone):
     def __init__(self, x=-1, y=-1):
         super().__init__(cost=100, dim=1, x=x, y=y, color=arcade.color.WHITE)
+    
+    def buildHouse(self):
+        if self.hasBuilding:
+            return None
+        house = House(x=self.x, y=self.y)
+        house.place()
+        self.hasBuilding = True
+        return house
 
 class Industrial (Zone):
     def __init__(self, x=-1, y=-1):
@@ -41,3 +59,4 @@ class Industrial (Zone):
 class Service (Zone):
     def __init__(self, x=-1, y=-1):
         super().__init__(cost=300, dim=1, x=x, y=y, color=arcade.color.CYAN)
+    

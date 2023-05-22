@@ -1,6 +1,6 @@
-from gameconfig import *;
 import arcade;
-from classes import Human;
+from gameconfig import *;
+from classes.Human import Human;
 
 class Building(arcade.Sprite):
     def __init__(self, filename, cost=0, maintenance=0, capacity=0, dim=1, x=-1, y=-1, income=0):
@@ -87,15 +87,30 @@ class Stadium(Building):
 
 class House(Building):
     humans = []
+
     def __init__(self, x=-1, y=-1):
-        super().__init__("House.png", capacity=20, x=x, y=y)
+        super().__init__("House.png", capacity=20, x=x, y=y, dim=1)
         for _ in range(5): self.humans.append(Human(x,y))
         self.p_inside = len(self.humans)
+
+    def place(self, x=None, y=None):
+        if x is None: x = self.x
+        if y is None: y = self.y
+        self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
+        self.center_y = ((y+1)*BLOCK_SIZE - (self.dim)*BLOCK_SIZE/2)
+        self.append()
 
 
 class WorkPlace(Building):
     def __init__(self, x=-1, y=-1):
         super().__init__("WorkPlace.png", capacity=30, dim=1, x=x, y=y, income=300)
+
+    def place(self, x=None, y=None):
+        if x is None: x = self.x
+        if y is None: y = self.y
+        self.center_x = ((x+3)*BLOCK_SIZE + (self.dim)*BLOCK_SIZE/2)
+        self.center_y = ((y+1)*BLOCK_SIZE - (self.dim)*BLOCK_SIZE/2)
+        self.append()
 
 class Road(Building):
     images = ["Road.png", "RoadL.png", "CrossRoad.png"]
