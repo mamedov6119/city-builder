@@ -1,15 +1,17 @@
-import json, arcade, copy
+import json, arcade, copy, datetime
 from gameconfig import *
 from classes.Disaster import *
 
 class Variables:
-    time = 1
+    time = 0
     speed = 1
     items = []
     zones = []
     money = 1000
     population = 0
     satisfaction = 100
+    last_income = -1
+    last_maintenance = -1
 
     def reset(self):
         self.time = 0
@@ -133,9 +135,12 @@ class Variables:
 
     def maintenance_charge(self):
         """ Charge the maintenance of the buildings """
-        if self.time % 365 == 0: 
+        date = datetime.date(2000, 1, 1) + datetime.timedelta(days=self.time)
+        if date.day == 1 and date.month == 1 and self.last_maintenance != int(self.time): 
             for i in range(len(self.items)):
                 self.money -= building_sprites[i].getMaintenance()
+                print("Maintenance charge:", building_sprites[i].getMaintenance())
+            self.last_maintenance = int(self.time)
 
     def populate_buildings(self):
         """ Populate the buildings """
@@ -190,11 +195,14 @@ class Variables:
         return False
 
     def collect_income(self):
-            """ Collect income from all buildings. """
-            if self.time % 30 == 0:
-                for building in building_sprites:
-                    if building.powered:
-                        self.money += building.getIncome()
+        """ Collect income from all buildings. """
+        date = datetime.date(2000, 1, 1) + datetime.timedelta(days=self.time)
+        if int(date.day) == 1 and self.last_income != int(self.time):
+            for building in building_sprites:
+                if building.powered:
+                    self.money += building.getIncome()
+                    print("Income:",building.getIncome())
+            self.last_income = int(self.time)
     
     def check_powered(self):
         """ Check if the buildings are powered """

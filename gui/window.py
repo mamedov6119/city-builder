@@ -266,6 +266,7 @@ class GameView(arcade.View):
         v.maintenance_charge()
         v.update_satisfaction()
         v.populate_buildings()
+        v.collect_income()
 
 
 
