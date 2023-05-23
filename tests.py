@@ -22,12 +22,8 @@ class Disaster(unittest.TestCase):
 
     def test_disaster_methods(self):
         """ Test disaster methods """
-        self.setup()
         pos = 2
-        # v.place_zone(Industrial, pos, pos)
-#         v.place_zone(Industrial, pos, pos-1)
-        # v.place_zone(Industrial, pos+1, pos-1)
-        # v.place_zone(Industrial, pos+1, pos)
+        self.setup()
         v.place_building(PowerPlant, pos, pos)
         v.summon_disaster()
         m = humans_sprites[0]
@@ -70,7 +66,6 @@ class Disaster(unittest.TestCase):
     #     self.assertEqual(sum([h.satisfaction for h in humans_sprites]), 500-5)
 
 
-
 class Humans(unittest.TestCase):
 
     def test_human(self):
@@ -87,9 +82,9 @@ class Humans(unittest.TestCase):
 
         self.assertEqual(h.pos_list, [[p[0]*BLOCK_SIZE+BLOCK_SIZE*3.5, p[1]*BLOCK_SIZE+BLOCK_SIZE//2] for p in path])
         for _ in range(len(path)*2): h.update()
-        
 
     def test_donotremove(self):
+        """ Indestructible buildings/roads """
         v.place_zone(Residential, 0, 0)
         v.place_zone(Industrial, 0, 2)
         v.place_building(Road, 0, 1)
@@ -100,6 +95,7 @@ class Humans(unittest.TestCase):
         self.assertEqual(attempt2, False)
     
     def test_satisfaction(self):
+        """ Satisfaction of a human """
         h = Human(x=3,y=3, satisfaction=50)
         h.inc()
         self.assertEqual(h.satisfaction, 51)
@@ -107,6 +103,7 @@ class Humans(unittest.TestCase):
         self.assertEqual(h.satisfaction, 50)
     
     def test_satisfaction_max_min(self):
+        """ Satisfaction of a human, max and min values """
         h = Human(x=3,y=3, satisfaction=100)
         h.inc()
         self.assertEqual(h.satisfaction, 100)
@@ -115,14 +112,11 @@ class Humans(unittest.TestCase):
         self.assertEqual(h.satisfaction, 0)
 
 
-        
-
-
-
 class Buildings(unittest.TestCase):
     def setup(self):
         """ Setup a new game """
         v.reset()
+        v.population = 0
         humans_sprites.clear()
         building_sprites.clear()
         zone_sprites.clear()
@@ -181,7 +175,19 @@ class Buildings(unittest.TestCase):
     def test_income(self):
         """ General income check """
         self.setup()
+        print(Stadium(0,0).getIncome())
         self.assertEqual(Stadium(0,0).getIncome(), 500)
+        v.place_building(Stadium, 0, 0)
+        v.place_building(PowerPlant, 2, 2)
+        v.check_powered()
+        
+        # one year later
+        d = datetime.date(2001, 1, 1) - datetime.date(2000, 1, 1)
+        v.time = d.days
+
+        v.collect_income()
+        self.assertEqual(v.money, -600)
+
 
     def test_house(self):
         """ Placement of a house """
@@ -191,7 +197,6 @@ class Buildings(unittest.TestCase):
         v.place_building(Road, 0, 1)
         v.road_logic(0,2)
         self.assertEqual(len(building_sprites), 3)
-
         
     def test_forest(self):
         """ Placement of a forest """
@@ -199,6 +204,29 @@ class Buildings(unittest.TestCase):
         v.place_building(Forest, 0, 0)
         self.assertEqual(len(building_sprites), 1)
 
+    def test_update_satisfaction(self):
+        """ Satisfaction calculation for whole map """
+        self.setup()
+        v.update_satisfaction()
+        self.assertEqual(v.satisfaction, 100)
+        v.place_zone(Residential, 0, 0)
+        v.place_zone(Industrial, 0, 2)
+        v.place_building(Road, 0, 1)
+        v.road_logic(0,2)
+        v.update_satisfaction()
+        self.assertEqual(v.satisfaction, 100)
+
+    def test_update_population(self):
+        """ Population calculation for whole map """
+        self.setup()
+        v.update_population()
+        self.assertEqual(v.population, 0)
+        v.place_zone(Residential, 0, 0)
+        v.place_zone(Industrial, 0, 2)
+        v.place_building(Road, 0, 1)
+        v.road_logic(0,2)
+        v.update_population()
+        self.assertEqual(v.population, 10)
 
     # def test_other_buildings(self):
     #     """ Variables of other buildings """
@@ -231,27 +259,15 @@ class Logic(unittest.TestCase):
         """ Inserted building is in the list """
         self.setup()
         pos = 2
-        # v.place_zone(Industrial, pos, pos)
-        # v.place_zone(Industrial, pos, pos-1)
-        # v.place_zone(Industrial, pos+1, pos-1)
-        # v.place_zone(Industrial, pos+1, pos)
         v.place_building(PowerPlant, pos, pos)
         self.assertEqual(len(building_sprites), 1)
 
-    def test_building_place_all(self):
+    def test_building_place_multiple(self):
         """ Inserted buildings are in the list """
         self.setup()
         pos = 2
-        # v.place_zone(Industrial, pos, pos)
-        # v.place_zone(Industrial, pos, pos-1)
-        # v.place_zone(Industrial, pos+1, pos-1)
-        # v.place_zone(Industrial, pos+1, pos)
         v.place_building(PowerPlant, pos, pos)
         pos += 2
-        # v.place_zone(Service, pos, pos)
-        # v.place_zone(Service, pos, pos-1)
-        # v.place_zone(Service, pos+1, pos-1)
-        # v.place_zone(Service, pos+1, pos)
         v.place_building(FireDepartment, pos, pos)
         self.assertEqual(len(building_sprites), 2)
         
@@ -259,10 +275,6 @@ class Logic(unittest.TestCase):
         """ Removed building is not in the list """
         self.setup()
         pos = 2
-        # v.place_zone(Industrial, pos, pos)
-        # v.place_zone(Industrial, pos, pos-1)
-        # v.place_zone(Industrial, pos+1, pos-1)
-        # v.place_zone(Industrial, pos+1, pos)
         v.place_building(PowerPlant, pos, pos)
         self.assertEqual(len(building_sprites), 1)
         v.remove_building(pos, pos)
@@ -279,13 +291,15 @@ class Logic(unittest.TestCase):
         v.remove_building(4, 4)
         self.assertEqual(len(building_sprites), 0)
 
-    # def test_building_fail(self):
-    #     self.setup()
-        # v.place_zone(Service, 2, 2)
-        # v.place_building(PowerPlant, 2, 2)
-        # self.assertEqual(len(building_sprites), 0)
+    def test_building_fail(self):
+        """ Building on top of another (not allowed to) """
+        self.setup()
+        v.place_building(PowerPlant, 2, 2)
+        v.place_building(PowerPlant, 2, 2)
+        self.assertEqual(len(building_sprites), 1)
 
     def test_zone_fail(self):
+        """ Zone on top of another (not allowed to) """
         self.setup()
         v.place_zone(Residential, 2, 2)
         v.place_zone(Industrial, 2, 2)
@@ -296,35 +310,19 @@ class Logic(unittest.TestCase):
         self.setup()
         m = v.money
         pos = 2
-        # v.place_zone(Industrial, pos, pos)
-        # v.place_zone(Industrial, pos, pos-1)
-        # v.place_zone(Industrial, pos+1, pos-1)
-        # v.place_zone(Industrial, pos+1, pos)
         v.place_building(PowerPlant, pos, pos)
-        # self.assertEqual(v.money, m - PowerPlant().getCost() - 4*Industrial().getCost())
         self.assertEqual(v.money, m - PowerPlant().getCost())  
 
-
-    def test_money_charge_all(self):
-        """ Charging money system ALL"""
+    def test_money_charge_mult(self):
+        """ Charging money system multiple"""
         self.setup()
         m = v.money
         pos = 2
-        # v.place_zone(Service, pos, pos)
-        # v.place_zone(Service, pos, pos-1)
-        # v.place_zone(Service, pos+1, pos-1)
-        # v.place_zone(Service, pos+1, pos)
         v.place_building(Stadium, pos, pos)
         pos += 2
-        # v.place_zone(Service, pos, pos)
-        # v.place_zone(Service, pos, pos-1)
-        # v.place_zone(Service, pos+1, pos-1)
-        # v.place_zone(Service, pos+1, pos)
         v.place_building(PoliceDepartment, pos, pos)
-        # self.assertEqual(v.money, m - Stadium().getCost() - PoliceDepartment().getCost() - 8*Service().getCost())
         self.assertEqual(v.money, m - Stadium().getCost() - PoliceDepartment().getCost())
 
-        
     def test_money_refund(self):
         """ Refund money system """
         self.setup()
@@ -333,8 +331,8 @@ class Logic(unittest.TestCase):
         v.remove_building(0, 0)
         self.assertEqual(v.money, m)
     
-    def test_money_refund_all(self):
-        """ Refund money system ALL """
+    def test_money_refund_mult(self):
+        """ Refund money system multiple """
         self.setup()
         pos = 0
         for b in self.buildings:
@@ -359,14 +357,9 @@ class Logic(unittest.TestCase):
         delta = d1 - d0
         v.time = 0
         pos = 2
-        # v.place_zone(Industrial, pos, pos)
-        # v.place_zone(Industrial, pos, pos-1)
-        # v.place_zone(Industrial, pos+1, pos-1)
-        # v.place_zone(Industrial, pos+1, pos)
         v.place_building(PowerPlant, pos, pos)
         v.time = delta.days
         v.maintenance_charge()
-        # self.assertEqual(v.money, m - PowerPlant().getMaintenance() - PowerPlant().getCost() - 4*Industrial().getCost())
         self.assertEqual(v.money, m - PowerPlant().getMaintenance() - PowerPlant().getCost())
 
     def test_maintenance_charge_multiple(self):
@@ -377,23 +370,13 @@ class Logic(unittest.TestCase):
         delta = d1 - d0
         v.time = 0
         pos = 2
-        # v.place_zone(Industrial, pos, pos)
-        # v.place_zone(Industrial, pos, pos-1)
-        # v.place_zone(Industrial, pos+1, pos-1)
-        # v.place_zone(Industrial, pos+1, pos)
         v.place_building(PowerPlant, pos, pos)
         pos += 2
         v.place_building(Road, 1, 1)
-        # v.place_zone(Service, pos, pos)
-        # v.place_zone(Service, pos, pos-1)
-        # v.place_zone(Service, pos+1, pos-1)
-        # v.place_zone(Service, pos+1, pos)
         v.place_building(FireDepartment, pos, pos)
-        # v.time = delta.days 
         print(v.time)
         m = v.money
         v.maintenance_charge()
-        # self.assertEqual(v.money, m - PowerPlant().getMaintenance() - PowerPlant().getCost() - Road().getMaintenance() - FireDepartment().getMaintenance() - FireDepartment().getCost() - Road().getCost() - 4*Industrial().getCost() - 4*Service().getCost())
         self.assertEqual(v.money, m - PowerPlant().getMaintenance() - Road().getMaintenance() - FireDepartment().getMaintenance())
         
 
@@ -410,10 +393,6 @@ class Saves(unittest.TestCase):
         """ Save game """
         building = PowerPlant
         self.setup()
-        # v.place_zone(Industrial, 2, 4)
-        # v.place_zone(Industrial, 2, 3)
-        # v.place_zone(Industrial, 3, 4)
-        # v.place_zone(Industrial, 3, 3)
         v.place_building(building, 2, 4)
         v.save('test.json')
         data = None
@@ -427,10 +406,6 @@ class Saves(unittest.TestCase):
         """ Load game """
         building = PowerPlant; pos = 2
         self.setup()
-        # v.place_zone(Industrial, pos, pos)
-        # v.place_zone(Industrial, pos, pos-1)
-        # v.place_zone(Industrial, pos+1, pos-1)
-        # v.place_zone(Industrial, pos+1, pos)
         v.place_building(building, pos, pos)
         v.save('test.json')
         v.load('test.json')
@@ -485,10 +460,9 @@ class Saves(unittest.TestCase):
         data = None
         with open('test.json', 'r') as f:
             data = json.load(f)
-        self.assertEqual(len(data["zones"][0]["humans"]), 15)
+        self.assertEqual(len(data["zones"][0]["humans"]), 25)
         os.remove('test.json')
 
-    
 
 if __name__ == '__main__':
     unittest.main()
