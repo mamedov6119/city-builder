@@ -1,15 +1,15 @@
 from gameconfig import *;
 import arcade, math, random;
 from logic.variables import v;
-from arcade import check_for_collision_with_list;
 
 class Human(arcade.Sprite):
-    def __init__(self, x=0, y=0, path=[]):
+    def __init__(self, x=0, y=0, path=[], satisfaction=100):
         super().__init__("./images/Human.png", CHRACTER_SCALING)
-        self.satisfaction = 100
+        self.satisfaction = satisfaction
         self.center_x, self.center_y = x, y 
-        self.pos_list = sorted([[p[0]*BLOCK_SIZE+BLOCK_SIZE*3.5, p[1]*BLOCK_SIZE+BLOCK_SIZE//2] for p in path], key=lambda pos : (pos[0], pos[1])) #[[p.x*BLOCK_SIZE+BLOCK_SIZE*3.5, p.y*BLOCK_SIZE+BLOCK_SIZE//2] for p in building_sprites]
-        print(path)
+        if len(path) > 0:
+            self.pos_list = sorted([[p[0]*BLOCK_SIZE+BLOCK_SIZE*3.5, p[1]*BLOCK_SIZE+BLOCK_SIZE//2] for p in path], key=lambda pos : (pos[0], pos[1])) #[[p.x*BLOCK_SIZE+BLOCK_SIZE*3.5, p.y*BLOCK_SIZE+BLOCK_SIZE//2] for p in building_sprites]
+        else: self.pos_list = [(x,y)]
         self.cur_pos = 0
         self.center_x, self.center_y = self.pos_list[self.cur_pos]
         humans_sprites.append(self)
@@ -47,10 +47,6 @@ class Human(arcade.Sprite):
 
         self.satisfaction -= 0.001 * v.speed
         
-
-    def collides_with_list(self, sprite_list):
-        return check_for_collision_with_list(self, sprite_list)
-    
 
     def inc(self):
         self.satisfaction += 1

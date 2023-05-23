@@ -135,10 +135,13 @@ class GameView(arcade.View):
         for zone in v.zones:
             z = eval(zone["type"])(zone["x"], zone["y"])
             z.place()
+            if zone["type"] == "Residential":
+                z.satisfaction = zone["humans"]
         for item in v.items:
             b = None
             if item["type"] == "Road":
                 b = eval(item["type"])(item["x"],item["y"],item["index"],item["rotation"])
+                v.road_logic(item["x"],item["y"])
             else:
                 b = eval(item["type"])(item["x"],item["y"])
             b.place()
@@ -269,11 +272,8 @@ class GameView(arcade.View):
         v.time += (delta_time/20) * v.speed
         v.maintenance_charge()
         v.update_satisfaction()
-        v.populate_buildings()
         v.collect_income()
         v.check_forest_radius()
-
-
 
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """

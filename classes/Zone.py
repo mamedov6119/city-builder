@@ -41,13 +41,16 @@ class Zone(arcade.Sprite):
         return wp
 
 class Residential (Zone):
+    
+    satisfaction = []
+
     def __init__(self, x=-1, y=-1):
         super().__init__(cost=100, dim=1, x=x, y=y, color=arcade.color.WHITE)
-    
+
     def buildHouse(self, path=[]):
         if self.hasBuilding:
             return None
-        house = House(x=self.x, y=self.y, path=path)
+        house = House(x=self.x, y=self.y, path=path, satisfaction=self.satisfaction)
         house.place()
         self.hasBuilding = True
         return house

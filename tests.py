@@ -38,6 +38,87 @@ class Disaster(unittest.TestCase):
         self.assertEqual(len(humans_sprites), 0)
         self.assertEqual(len(building_sprites), 0)
 
+    def test_endurance_work(self):
+        """ Endurance of a work place """
+        self.setup()
+        v.place_zone(Residential, 0, 0)
+        v.place_zone(Industrial, 0, 2)
+        v.place_building(Road, 0, 1)
+        v.road_logic(0,2)   
+        v.summon_disaster()
+        m = humans_sprites[5]
+        self.assertEqual(m.__class__.__name__, "Meteor")
+        m.assign_target(x=(0+3)*BLOCK_SIZE, y=(2+1)*BLOCK_SIZE)
+        for _ in range(0, 2 * 50 * 10):
+            m.update()
+        self.assertEqual(len(building_sprites), 3)
+    
+    # def test_endurance_house(self):
+    #     """ Endurance of a house """
+    #     self.setup()
+    #     v.place_zone(Residential, 0, 0)
+    #     v.place_zone(Industrial, 0, 2)
+    #     v.place_building(Road, 0, 1)
+    #     v.road_logic(0,2)   
+    #     v.summon_disaster()
+    #     m = humans_sprites[5]
+    #     self.assertEqual(m.__class__.__name__, "Meteor")
+    #     m.assign_target(x=(0+3)*BLOCK_SIZE, y=(0+1)*BLOCK_SIZE)
+    #     for _ in range(0, 2 * 50 * 1000):
+    #         m.update()
+    #     self.assertEqual(len(building_sprites), 3)
+    #     self.assertEqual(sum([h.satisfaction for h in humans_sprites]), 500-5)
+
+
+
+class Humans(unittest.TestCase):
+
+    def test_human(self):
+        """ Test human Initialization """
+        h = Human(x=3,y=3, satisfaction=50)
+        self.assertEqual(h.center_x, 3)
+        self.assertEqual(h.center_y, 3)
+        self.assertEqual(h.satisfaction, 50)
+
+    def test_human_movement(self):
+        """Movement of a human"""
+        path=[[4,5],[5,6],[6,7]]
+        h = Human(x=3,y=3, path=path, satisfaction=50)
+
+        self.assertEqual(h.pos_list, [[p[0]*BLOCK_SIZE+BLOCK_SIZE*3.5, p[1]*BLOCK_SIZE+BLOCK_SIZE//2] for p in path])
+        for _ in range(len(path)*2): h.update()
+        
+
+    def test_donotremove(self):
+        v.place_zone(Residential, 0, 0)
+        v.place_zone(Industrial, 0, 2)
+        v.place_building(Road, 0, 1)
+        v.road_logic(0,2)  
+        attempt1 = v.remove_building(0,0)
+        attempt2 = v.remove_building(0,1)
+        self.assertEqual(attempt1, False)
+        self.assertEqual(attempt2, False)
+    
+    def test_satisfaction(self):
+        h = Human(x=3,y=3, satisfaction=50)
+        h.inc()
+        self.assertEqual(h.satisfaction, 51)
+        h.dec()
+        self.assertEqual(h.satisfaction, 50)
+    
+    def test_satisfaction_max_min(self):
+        h = Human(x=3,y=3, satisfaction=100)
+        h.inc()
+        self.assertEqual(h.satisfaction, 100)
+        h.satisfaction = 0
+        h.dec()
+        self.assertEqual(h.satisfaction, 0)
+
+
+        
+
+
+
 class Buildings(unittest.TestCase):
     def setup(self):
         """ Setup a new game """
@@ -67,15 +148,22 @@ class Buildings(unittest.TestCase):
         v.place_building(Road, 0, 0)    # index = 2
         self.assertEqual(road.index, 2)
 
-    # def test_road_rotation(self):
-    #     """ Ability to rotate the road """
-    #     self.setup()
-    #     v.place_building(Road, 0, 0)
-    #     # Each rotation is 90 degrees at [0..360]
-    #     road = building_sprites[0]      # rotation = 0
-    #     v.rotate_road(road)             # rotation = 90
-    #     v.rotate_road(road)             # rotation = 180
-    #     self.assertEqual(road.rotation, 180)
+    def test_road_rotation(self):
+        """ Ability to rotate the road """
+        self.setup()
+        v.place_building(Road, 0, 0)
+        # Each rotation is 90 degrees at [0..360]
+        road = building_sprites[0]      # rotation = 0
+        v.rotate_road(road)             # rotation = 90
+        v.rotate_road(road)             # rotation = 180
+        self.assertEqual(road.rotation, 180)
+
+    def test_zone_type(self):
+        """ Ability to change the zone type """
+        self.setup()
+        v.place_zone(Residential, 0, 0)
+        self.assertEqual(v.get_zone(0,0), "Residential")
+        self.assertEqual(v.get_zone(1,0), None)
 
     def test_capacity(self):
         """ General capacity check """
@@ -89,6 +177,28 @@ class Buildings(unittest.TestCase):
         self.setup()
         self.assertEqual(FireDepartment(0,0).getSafetyRadius(), 1)
         self.assertEqual(PoliceDepartment(2,2).getSafetyRadius(), 1)
+
+    def test_income(self):
+        """ General income check """
+        self.setup()
+        self.assertEqual(Stadium(0,0).getIncome(), 500)
+
+    def test_house(self):
+        """ Placement of a house """
+        self.setup()
+        v.place_zone(Residential, 0, 0)
+        v.place_zone(Industrial, 0, 2)
+        v.place_building(Road, 0, 1)
+        v.road_logic(0,2)
+        self.assertEqual(len(building_sprites), 3)
+
+        
+    def test_forest(self):
+        """ Placement of a forest """
+        self.setup()
+        v.place_building(Forest, 0, 0)
+        self.assertEqual(len(building_sprites), 1)
+
 
     # def test_other_buildings(self):
     #     """ Variables of other buildings """
@@ -287,6 +397,7 @@ class Logic(unittest.TestCase):
         self.assertEqual(v.money, m - PowerPlant().getMaintenance() - Road().getMaintenance() - FireDepartment().getMaintenance())
         
 
+
 class Saves(unittest.TestCase):
     def setup(self):
         """ Setup a new game """
@@ -348,6 +459,36 @@ class Saves(unittest.TestCase):
             data = json.load(f)
         self.assertEqual(data["speed"], speed)
         os.remove('test.json')
+
+    def test_save_zone_industr(self):
+        """ Save zone """
+        self.setup()
+        zone = Industrial
+        v.place_zone(zone, 2, 4)
+        v.save('test.json')
+        data = None
+        with open('test.json', 'r') as f:
+            data = json.load(f)
+        self.assertEqual(len(data["zones"]), 1)
+        self.assertEqual(data["zones"][0]["type"], zone.__name__)
+        os.remove('test.json')
+    
+    def test_save_zone_resident(self):
+        """ Save zone """
+        self.setup()
+        zone = Residential
+        v.place_zone(zone, 0, 0)
+        v.place_zone(Service, 0, 2)
+        v.place_building(Road, 0, 1)
+        v.road_logic(0,1)
+        v.save('test.json')
+        data = None
+        with open('test.json', 'r') as f:
+            data = json.load(f)
+        self.assertEqual(len(data["zones"][0]["humans"]), 15)
+        os.remove('test.json')
+
+    
 
 if __name__ == '__main__':
     unittest.main()

@@ -32,10 +32,17 @@ class Variables:
                 self.money = data["money"] if "money" in data else self.money
                 self.items = data["items"] if "items" in data else self.items
                 self.zones = data["zones"] if "zones" in data else self.zones
+            self.check_powered()
+            self.check_forest_radius()
         except: self.reset()
-
+        
     def save(self, filename):
         """ Save the game to a file """
+        for zone in self.zones:
+            try:
+                if zone["type"] == "Residential":
+                    zone["humans"] = [ h.satisfaction for h in arcade.get_sprites_at_point([(zone["x"]+4)*BLOCK_SIZE, (zone["y"]+1)*BLOCK_SIZE], building_sprites)[0].humans]
+            except: pass
         with open(filename, "w") as f:
             json.dump({"time": v.time, "speed": v.speed, "money": v.money, "items": v.items, "zones" : v.zones }, f)
 
@@ -160,17 +167,6 @@ class Variables:
                 self.money -= building_sprites[i].getMaintenance()
                 print("Maintenance charge:", building_sprites[i].getMaintenance())
             self.last_maintenance = int(self.time)
-
-    def populate_buildings(self):
-        """ Populate the buildings """
-        # if a week has passed and the satisfaction is greater than 10, add a person to a random house
-        if self.time % 7 == 0:
-            if self.satisfaction > 10:
-                for item in building_sprites:
-                    if item.p_inside < item.capacity:
-                        item.p_inside += 1
-                        self.population += 1
-                        break
 
     def place_zone(self, zone, x, y):
         """ Place a zone on the map """
