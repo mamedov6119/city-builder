@@ -33,9 +33,5 @@ or with cache removal (Linux):
 - [x] Fire department (partial)
 - [x] Forest
 - [x] Extra: Human road movement
-
-## Authors and acknowledgment
-- Baghirov Feyruz: Sprite images
-
 ## Project status
 In progress
