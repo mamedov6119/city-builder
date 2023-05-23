@@ -88,9 +88,9 @@ class Stadium(Building):
 class House(Building):
     humans = []
 
-    def __init__(self, x=-1, y=-1):
+    def __init__(self, x=-1, y=-1, path=[]):
         super().__init__("House.png", capacity=20, x=x, y=y, dim=1)
-        for _ in range(5): self.humans.append(Human(x,y))
+        for _ in range(5): self.humans.append(Human(x,y, path=path))
         self.p_inside = len(self.humans)
 
     def place(self, x=None, y=None):

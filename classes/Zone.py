@@ -32,7 +32,7 @@ class Zone(arcade.Sprite):
     def getCost(self):
         return self.cost
     
-    def buildHouse(self):
+    def buildHouse(self, path=[]):
         if self.hasBuilding:
             return None
         wp = WorkPlace(x=self.x, y=self.y)
@@ -44,10 +44,10 @@ class Residential (Zone):
     def __init__(self, x=-1, y=-1):
         super().__init__(cost=100, dim=1, x=x, y=y, color=arcade.color.WHITE)
     
-    def buildHouse(self):
+    def buildHouse(self, path=[]):
         if self.hasBuilding:
             return None
-        house = House(x=self.x, y=self.y)
+        house = House(x=self.x, y=self.y, path=path)
         house.place()
         self.hasBuilding = True
         return house

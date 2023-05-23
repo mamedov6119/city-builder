@@ -65,7 +65,7 @@ class Variables:
                 finder.center_y = ((pos[1]+1)*BLOCK_SIZE - (1)*BLOCK_SIZE/2)
                 finder.texture = arcade.make_soft_square_texture(BLOCK_SIZE, arcade.color.RED, outer_alpha=255)
                 target = arcade.check_for_collision_with_list(finder, zone_sprites)
-                target[0].buildHouse()
+                target[0].buildHouse(path=roadlist)
 
     def into_matrix(self):
         """ Convert the map into a matrix """
