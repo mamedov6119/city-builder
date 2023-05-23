@@ -100,7 +100,7 @@ class GameView(arcade.View):
         {"text": "Fire Dep", "color": arcade.color.ALABAMA_CRIMSON, "class": FireDepartment()},   
         {"text": "Stadium", "color": arcade.color.BURNT_ORANGE, "class": Stadium()},
         {"text": "Road", "color": arcade.color.BLACK, "class": Road()},
-        {"text": "Forest", "color": arcade.color.GREEN, "class": Forest()},
+        {"text": "Forest", "color": arcade.color.AO, "class": Forest()},
         {"text": "Remove", "color": arcade.color.RED, "class": None}
         
     ]
@@ -123,6 +123,7 @@ class GameView(arcade.View):
         self.menu_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidetop_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidebtm_manager = arcade.gui.UIManager(auto_enable=True)
+        self.button_manager = arcade.gui.UIManager(auto_enable=True)
         self.setup()
 
     def on_show_view(self):
@@ -255,6 +256,7 @@ class GameView(arcade.View):
         zone_sprites.draw()
         building_sprites.draw()
         humans_sprites.draw()
+        self.button_manager.draw()
         
 
     def on_update(self, delta_time):
@@ -314,14 +316,19 @@ class GameView(arcade.View):
                     v.place_zone(zone=target, x=i, y=j)
                 else: v.remove_building(i, j)
             elif 0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2 and self.selected == -1:
-                c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
-                print(f"Capacity: {c.capacity}")
-                print(f"p_inside: {c.p_inside}")
-                print(f"powered: {c.powered}")
-                print(c.__class__.__name__)
+                c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)
+                if len(c) > 0:
+                    c = c[0]
+                    text = f"Type: {c.__class__.__name__} \nCapacity: {c.capacity} \nPowered: {'yes' if c.powered else 'no'}\n"
+                    if c.__class__.__name__ == "House":
+                        text += f"People: {len(c.humans)} \nSatisfaction: {round(sum([h.satisfaction for h in c.humans]) / len(c.humans))}%"
+                    message_box = arcade.gui.UIMessageBox(
+                        width=300,
+                        height=200,
+                        callback=None,
+                        message_text=text,
+                        buttons=["Done"]
+                    )
+                    self.button_manager.add(message_box)
         except Exception as e:
             print(e)
-
-    
-
-        
