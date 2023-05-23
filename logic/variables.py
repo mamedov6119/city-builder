@@ -141,7 +141,7 @@ class Variables:
             if (x, y) in self.donotremove:
                 return False
             b = arcade.get_sprites_at_point([(x+4)*BLOCK_SIZE, (y+1)*BLOCK_SIZE], building_sprites)[0]
-            self.money += b.getCost()
+            self.money += b.getCost() * 0.5
             obj = {"x": b.x, "y": b.y, "type": b.__class__.__name__}
             if b.__class__.__name__ == "Road":
                 obj["index"] = b.index

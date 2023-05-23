@@ -329,7 +329,7 @@ class Logic(unittest.TestCase):
         m = v.money
         v.place_building(PowerPlant, 0, 0)
         v.remove_building(0, 0)
-        self.assertEqual(v.money, m)
+        self.assertEqual(v.money, 500)
     
     def test_money_refund_mult(self):
         """ Refund money system multiple """
@@ -337,9 +337,10 @@ class Logic(unittest.TestCase):
         pos = 0
         for b in self.buildings:
             m = v.money
+            price = b().getCost() * 0.5
             v.place_building(b, pos, pos)
             v.remove_building(pos, pos)
-            self.assertEqual(v.money, m)
+            self.assertEqual(v.money, m - price)
             pos += 2
 
     def test_speed_method(self):
