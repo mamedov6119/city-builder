@@ -13,6 +13,7 @@ class Variables:
     donotremove = []
     last_income = -1
     last_maintenance = -1
+    last_forest = -1
 
     def reset(self):
         self.time = 0
@@ -139,6 +140,7 @@ class Variables:
                 obj["index"] = b.index
                 obj["rotation"] = b.rotation
             self.items.remove(obj)
+            if b.__class__.__name__ == "PowerPlant": self.check_powered()
             b.kill()
         except: return False
 
@@ -198,11 +200,10 @@ class Variables:
                 sum += len(item.humans)
         self.population = sum
 
-    def is_within_reach(self, building, radius=6):
+    def is_within_reach(self, building, radius=6, target="PowerPlant"):
         """ Check if the building has electricity """
         for item in self.items:
-            if item["type"] == "PowerPlant":
-                # Calculating Euclidean distance
+            if item["type"] == target:
                 distance = abs(item["x"] - building.x) + abs(item["y"] - building.y)
                 if distance <= radius:
                     print("Within reach")
@@ -225,6 +226,18 @@ class Variables:
         for building in building_sprites:
             if self.is_within_reach(building):
                 building.setPower(True)
+            else: building.setPower(False)
+    
+    def check_forest_radius(self):
+        """ Check if the houses are within the forest radius """
+        date = datetime.date(2000, 1, 1) + datetime.timedelta(days=self.time)
+        if int(date.day) % 2 == 0 and self.last_forest != int(self.time):
+            for building in building_sprites:
+                if building.__class__.__name__ == "House" and self.is_within_reach(building, 7, target="Forest"):
+                    for human in building.humans:
+                        human.inc()
+            self.last_forest = int(self.time)
+                    
 
             
 # --------------------------------------------------

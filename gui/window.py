@@ -100,7 +100,9 @@ class GameView(arcade.View):
         {"text": "Fire Dep", "color": arcade.color.ALABAMA_CRIMSON, "class": FireDepartment()},   
         {"text": "Stadium", "color": arcade.color.BURNT_ORANGE, "class": Stadium()},
         {"text": "Road", "color": arcade.color.BLACK, "class": Road()},
+        {"text": "Forest", "color": arcade.color.GREEN, "class": Forest()},
         {"text": "Remove", "color": arcade.color.RED, "class": None}
+        
     ]
 
     sidezonebtns = [
@@ -267,6 +269,7 @@ class GameView(arcade.View):
         v.update_satisfaction()
         v.populate_buildings()
         v.collect_income()
+        v.check_forest_radius()
 
 
 
@@ -314,6 +317,7 @@ class GameView(arcade.View):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
                 print(f"Capacity: {c.capacity}")
                 print(f"p_inside: {c.p_inside}")
+                print(f"powered: {c.powered}")
                 print(c.__class__.__name__)
         except Exception as e:
             print(e)

@@ -29,7 +29,7 @@ class Meteor(arcade.Sprite):
                     continue
                 if b.__class__.__name__ == "House":
                     for h in b.humans:
-                        h.satisfaction -= 1
+                        h.dec()
                     continue
                 b.kill()
             self.kill()

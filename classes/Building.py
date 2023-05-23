@@ -130,3 +130,8 @@ class Road(Building):
         deg = 90
         self.turn_left(deg)
         self.rotation = (self.rotation + deg) % 360
+
+
+class Forest(Building):
+    def __init__(self, x=-1, y=-1, radius=7):
+        super().__init__("Forest.png", dim=1, maintenance=0, x=x, y=y, cost=200, income=0)
