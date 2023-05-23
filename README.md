@@ -28,9 +28,11 @@ or with cache removal (Linux):
 ## Roadmap
 - [x] General
 - [x] Persistence
-- [ ] Disaster
-- [ ] Electricity (partial)
-- [ ] Fire department (partial)
+- [x] Disaster
+- [x] Electricity
+- [x] Fire department (partial)
+- [x] Forest
+- [x] Extra: Human road movement
 
 ## Authors and acknowledgment
 - Baghirov Feyruz: Sprite images

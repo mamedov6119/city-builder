@@ -1,33 +1,61 @@
 from gameconfig import *;
-
-# import gui.window as w;
 import arcade, math, random;
 from logic.variables import v;
-from arcade import check_for_collision_with_list;
 
 class Human(arcade.Sprite):
-    def __init__(self):
+    def __init__(self, x=0, y=0, path=[], satisfaction=100):
         super().__init__("./images/Human.png", CHRACTER_SCALING)
-        self.circle_center_x = random.randrange(150, 700)
-        self.circle_center_y = random.randrange(150, 700)
-        self.circle_radius = random.randrange(10, 200)
-        self.circle_angle = random.random() * 2 * math.pi
+        self.satisfaction = satisfaction
+        self.center_x, self.center_y = x, y 
+        if len(path) > 0:
+            self.pos_list = sorted([[p[0]*BLOCK_SIZE+BLOCK_SIZE*3.5, p[1]*BLOCK_SIZE+BLOCK_SIZE//2] for p in path], key=lambda pos : (pos[0], pos[1])) #[[p.x*BLOCK_SIZE+BLOCK_SIZE*3.5, p.y*BLOCK_SIZE+BLOCK_SIZE//2] for p in building_sprites]
+        else: self.pos_list = [(x,y)]
+        self.cur_pos = 0
+        self.center_x, self.center_y = self.pos_list[self.cur_pos]
         humans_sprites.append(self)
 
     def update(self):
-        # if (not self.collides_with_list(building_sprites)):
-        self.center_x = self.circle_radius * math.sin(self.circle_angle) \
-            + self.circle_center_x
-        self.center_y = self.circle_radius * math.cos(self.circle_angle) \
-            + self.circle_center_y
-        self.circle_angle += HUMAN_SPEED * v.speed
-        self.check_boundary_collision()
+        
+        start_x = self.center_x
+        start_y = self.center_y
 
-    def collides_with_list(self, sprite_list):
-        return check_for_collision_with_list(self, sprite_list)
+        dest_x, dest_y = self.pos_list[self.cur_pos]
+
+        x_diff = dest_x - start_x
+        y_diff = dest_y - start_y
+
+        angle = math.atan2(y_diff, x_diff)
+
+        distance = math.sqrt((self.center_x - dest_x) ** 2 + (self.center_y - dest_y) ** 2)
+
+        
+        speed = min(random.uniform(0.2, 2.0), distance) * v.speed
+
+        change_x = math.cos(angle) * speed  
+        change_y = math.sin(angle) * speed  
+
+        self.center_x += change_x
+        self.center_y += change_y
+
+        distance = math.sqrt((self.center_x - dest_x) ** 2 + (self.center_y - dest_y) ** 2)
+
+        if distance <= speed:
+            self.cur_pos += 1
+            if self.cur_pos >= len(self.pos_list):
+                self.cur_pos = 0
+                self.pos_list = self.pos_list[::-1]
+
+        self.satisfaction -= 0.001 * v.speed
+        
+
+    def inc(self):
+        self.satisfaction += 1
+        if self.satisfaction > 100:
+            self.satisfaction = 100
     
-    def check_boundary_collision(self):
-        if self.right > SCREEN_WIDTH: self.right = SCREEN_WIDTH
-        if self.left < 3*BLOCK_SIZE: self.left = 3*BLOCK_SIZE
-        if self.top > SCREEN_HEIGHT - BLOCK_SIZE: self.top = SCREEN_HEIGHT - BLOCK_SIZE
-        if self.bottom < 0: self.bottom = 0
+    def dec(self):
+        self.satisfaction -= 1
+        if self.satisfaction < 0:
+            self.satisfaction = 0
+    
+    

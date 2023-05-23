@@ -17,6 +17,7 @@ class Meteor(arcade.Sprite):
         self.angle = math.degrees(math.atan2(self.target_y - self.center_y, self.target_x - self.center_x))
 
     def explode(self):
+        from logic.variables import v;
         duration = 20 * 5
         self.destroy += 1
         if self.destroy == 1:
@@ -24,6 +25,12 @@ class Meteor(arcade.Sprite):
         elif self.destroy == duration:
             buildings = arcade.check_for_collision_with_list(self, building_sprites)
             for b in buildings:
+                if (b.x, b.y) in v.donotremove or b.__class__.__name__ == "WorkPlace":
+                    continue
+                if b.__class__.__name__ == "House":
+                    for h in b.humans:
+                        h.dec()
+                    continue
                 b.kill()
             self.kill()
 

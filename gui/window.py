@@ -1,9 +1,13 @@
 from gameconfig import *;
+from classes.Zone import *;
 from classes.Human import *;
 from classes.Building import *;
 
 from logic.variables import v;
-import arcade, arcade.gui, datetime, json;
+import arcade, arcade.gui, datetime;
+from tkinter import filedialog as fd
+
+fileselector = None
 
 class Hover(arcade.Sprite):
     def __init__(self, size=0, color=arcade.color.RED):
@@ -48,15 +52,27 @@ class MenuView(arcade.View):
         self.menu_manager = arcade.gui.UIManager(auto_enable=True)
         self.setup()
 
+    def setfile(self):
+        global fileselector
+        fileselector = fd.askopenfilename()
+        if fileselector:
+            self.window.game_view = GameView(fileselector)
+            self.window.show_view(self.window.game_view) 
+            self.menu_manager.disable()
+
+    def launch_game(self):
+        self.window.show_view(self.window.game_view)
+        self.menu_manager.disable()
+
     def setup(self):
         self.box = arcade.gui.UIBoxLayout(vertical=True)
 
         play_btn = arcade.gui.UIFlatButton(text="Play", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2, style={"bg_color": arcade.color.APPLE_GREEN, "font_color": arcade.color.WHITE})
-        play_btn.on_click = lambda _: self.window.show_view(self.window.game_view)
+        play_btn.on_click = lambda _: self.launch_game()
         self.box.add(play_btn.with_space_around(top=10))
 
         load_btn = arcade.gui.UIFlatButton(text="Load", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2)
-        load_btn.on_click = lambda _: self.window.show_view(self.window.game_view)
+        load_btn.on_click = lambda _: self.setfile()
         self.box.add(load_btn.with_space_around(top=10))
 
         exit_btn = arcade.gui.UIFlatButton(text="Exit", width=200, height=50, center_x=SCREEN_WIDTH//2, center_y=SCREEN_HEIGHT//2, style={"bg_color": arcade.color.ALABAMA_CRIMSON, "font_color": arcade.color.WHITE})
@@ -84,40 +100,62 @@ class GameView(arcade.View):
         {"text": "Fire Dep", "color": arcade.color.ALABAMA_CRIMSON, "class": FireDepartment()},   
         {"text": "Stadium", "color": arcade.color.BURNT_ORANGE, "class": Stadium()},
         {"text": "Road", "color": arcade.color.BLACK, "class": Road()},
+        {"text": "Forest", "color": arcade.color.AO, "class": Forest()},
         {"text": "Remove", "color": arcade.color.RED, "class": None}
+        
+    ]
+
+    sidezonebtns = [
+        {"text": "Residential", "class": Residential()},
+        {"text": "Service", "class": Service()},
+        {"text": "Industrial", "class": Industrial()}
     ]
 
     """ Class which renders the field of the game. """
-    def __init__(self, filename):
+    def __init__(self, filename='save.json'):
         super().__init__()
-        self.load(filename)
+        self.filename = filename
+        building_sprites.clear()
+        humans_sprites.clear()
+        zone_sprites.clear()
+        self.load()
         arcade.set_background_color(arcade.color.AMAZON)
         self.menu_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidetop_manager = arcade.gui.UIManager(auto_enable=True)
         self.sidebtm_manager = arcade.gui.UIManager(auto_enable=True)
+        self.button_manager = arcade.gui.UIManager(auto_enable=True)
         self.setup()
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.AMAZON)
+        arcade.set_viewport(0, self.window.width, 0, self.window.height)
 
-    def load(self, filename="save.json"):
-        v.load(filename)
+    def load(self):
+        v.load(self.filename)
+        for zone in v.zones:
+            z = eval(zone["type"])(zone["x"], zone["y"])
+            z.place()
+            if zone["type"] == "Residential":
+                z.satisfaction = zone["humans"]
         for item in v.items:
             b = None
             if item["type"] == "Road":
                 b = eval(item["type"])(item["x"],item["y"],item["index"],item["rotation"])
+                v.road_logic(item["x"],item["y"])
             else:
                 b = eval(item["type"])(item["x"],item["y"])
             b.place()
 
-    def save(self, filename="save.json"):
-        v.save(filename)
+    def save(self):
+        v.save(self.filename)
 
     def set_select(self, e):
         self.selected = e.source.text if self.selected != e.source.text else -1
-        if self.selected != -1 and self.selected != "Remove":
+        if self.selected != -1 and self.selected != "Remove" and self.selected in [i["text"] for i in self.sidebtns]:
             dim = self.sidebtns[[i["text"] for i in self.sidebtns].index(self.selected)]["class"].getDim()
             self.hover_sprite.set_size(dim)
+        elif self.selected != -1 and self.selected in [i["text"] for i in self.sidezonebtns]: 
+            self.hover_sprite.set_size(1)
         else: self.hover_sprite.set_size(0)
         self.draw_sidetop()
 
@@ -132,6 +170,13 @@ class GameView(arcade.View):
             btn.on_click = lambda e: self.set_select(e)
             self.ht_box.add(btn.with_space_around(right=1,top=1,bottom=1,left=1))
         self.sidetop_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="top", child=self.ht_box, align_x=BLOCK_SIZE//2, align_y=-BLOCK_SIZE))
+
+        self.ht2_box = arcade.gui.UIBoxLayout(vertical=True)
+        for i in self.sidezonebtns:
+            btn = arcade.gui.UIFlatButton(text=i["text"], width=(BLOCK_SIZE*2)-2, height=BLOCK_SIZE-2, style={"font_size": 8, "bg_color": arcade.color.DARK_PUCE, "border_color": arcade.color.WHITE if self.selected == i["text"] else None})
+            btn.on_click = lambda e: self.set_select(e)
+            self.ht2_box.add(btn.with_space_around(right=1,top=1,bottom=1,left=1))
+        self.sidetop_manager.add(arcade.gui.UIAnchorWidget(anchor_x="left", anchor_y="top", child=self.ht2_box, align_x=BLOCK_SIZE//2, align_y=-BLOCK_SIZE*(len(self.sidebtns)+3)))
 
     def draw_topbar(self):
         self.v_box = arcade.gui.UIBoxLayout(vertical=False)
@@ -162,11 +207,15 @@ class GameView(arcade.View):
         # Money 
         arcade.draw_text(f"Funds: ${v.money:,}", 10, SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier")
 
-        # Time (right-aligned)
-        # arcade.draw_text(self.show_date(), (SCREEN_WIDTH - 10) - BLOCK_SIZE*4, SCREEN_HEIGHT - 20, arcade.color.APRICOT, 14, font_name="Courier", anchor_x="right")
-        
         # Time (center-aligned)
         arcade.draw_text(self.show_date(), SCREEN_WIDTH/2, SCREEN_HEIGHT - 20, arcade.color.APRICOT, 14, font_name="Courier", anchor_x="center")
+
+        # Population
+        # arcade.draw_texture_rectangle(SCREEN_WIDTH - (BLOCK_SIZE*7), SCREEN_HEIGHT - (BLOCK_SIZE/2), BLOCK_SIZE, BLOCK_SIZE, arcade.load_texture("images/Human.png"))
+        arcade.draw_text(f"p:{v.population:,}", SCREEN_WIDTH - (BLOCK_SIZE*10), SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier", anchor_x="right")
+
+        # Satisfaction 
+        arcade.draw_text(f"{round(v.satisfaction)}%", SCREEN_WIDTH - (BLOCK_SIZE*5), SCREEN_HEIGHT - 20, arcade.color.WHITE, 14, font_name="Courier", anchor_x="right")
 
     def draw_grid(self):
         """ Draw the grid """
@@ -197,7 +246,7 @@ class GameView(arcade.View):
         humans_sprites.append(self.rotate_sprite)
         
         # Place humans
-        for _ in range(10): Human()
+        # for _ in range(10): Human()
 
     def on_draw(self):
         """ Render the screen. """
@@ -207,8 +256,11 @@ class GameView(arcade.View):
         self.menu_manager.draw()
         self.sidetop_manager.draw()
         self.sidebtm_manager.draw()
+        zone_sprites.draw()
         building_sprites.draw()
         humans_sprites.draw()
+        self.button_manager.draw()
+        
 
     def on_update(self, delta_time):
         """
@@ -217,6 +269,11 @@ class GameView(arcade.View):
         need it.
         """
         humans_sprites.update()
+        v.time += (delta_time/20) * v.speed
+        v.maintenance_charge()
+        v.update_satisfaction()
+        v.collect_income()
+        v.check_forest_radius()
 
     def on_key_press(self, key, modifiers):
         """ Called whenever a key is pressed. """
@@ -227,7 +284,7 @@ class GameView(arcade.View):
         """ Called whenever the mouse moves. """
         if self.selected != -1:
             i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
-            if (0 <= i and 0 <= j <= 14):
+            if (0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2):
                 self.hover_sprite.update_pos(i,j)
         
     def find_sprite(self, x, y):
@@ -242,18 +299,36 @@ class GameView(arcade.View):
         i = (x//BLOCK_SIZE)-3; j = y//BLOCK_SIZE
         print(f"!!x:{i}, y:{j}. BX:{x}, BY:{y}")
         try:
-            if (self.rotate_sprite.on and 0 <= i and 0 <= j <= 14):
+            if (self.rotate_sprite.on and 0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2):
                 c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)[0]
                 if c.__class__.__name__ == "Road": v.rotate_road(c)
-
-            if (0 <= i and 0 <= j <= 14 and self.selected != -1):
-                if self.selected != 'Remove':
+            if (0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2 and self.selected != -1):
+                if self.selected != 'Remove' and self.selected in [i["text"] for i in self.sidebtns]:
                     target = None
                     for item in self.sidebtns:
                         if item['text'] == self.selected:
                             target = item['class'].__class__
                     v.place_building(building=target, x=i, y=j)
+                elif self.selected != 'Remove' and self.selected in [i["text"] for i in self.sidezonebtns]:
+                    for item in self.sidezonebtns:
+                        if item['text'] == self.selected:
+                            target = item['class'].__class__
+                    v.place_zone(zone=target, x=i, y=j)
                 else: v.remove_building(i, j)
+            elif 0 <= i and 0 <= j <= (SCREEN_HEIGHT//BLOCK_SIZE) - 2 and self.selected == -1:
+                c = arcade.get_sprites_at_point([(i+4)*BLOCK_SIZE, (j+1)*BLOCK_SIZE], building_sprites)
+                if len(c) > 0:
+                    c = c[0]
+                    text = f"Type: {c.__class__.__name__} \nCapacity: {c.capacity} \nPowered: {'yes' if c.powered else 'no'}\n"
+                    if c.__class__.__name__ == "House":
+                        text += f"People: {len(c.humans)} \nSatisfaction: {round(sum([h.satisfaction for h in c.humans]) / len(c.humans))}%"
+                    message_box = arcade.gui.UIMessageBox(
+                        width=300,
+                        height=200,
+                        callback=None,
+                        message_text=text,
+                        buttons=["Done"]
+                    )
+                    self.button_manager.add(message_box)
         except Exception as e:
             print(e)
-    
